@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#11110f" />
+    <meta name="description" content="Clean Unicode and whitespace with a transparent review trail. Text stays in your browser." />
+    <title>Unicode Clean — thoughtful text cleanup</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <div class="site-shell">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Unicode Clean home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M9 8.5v9.3a7 7 0 0 0 14 0V8.5M7 8.5h4m10 0h4" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+              <path d="M16 22.8v2.7m-3 0h6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+            </svg>
+          </span>
+          <span class="brand-name">unicode<span>clean</span></span>
+        </a>
+        <div class="topbar-actions">
+          <span class="local-badge"><span class="local-dot"></span> Runs locally</span>
+          <a class="text-link" href="https://github.com/shaxntanu/unicodeClean" target="_blank" rel="noreferrer">GitHub <span aria-hidden="true">↗</span></a>
+        </div>
+      </header>
+
+      <main id="main-content">
+        <section class="intro" aria-labelledby="page-title">
+          <div class="eyebrow"><span class="eyebrow-rule"></span> A small tool for cleaner text</div>
+          <h1 id="page-title">Clean the text.<br /><span>Keep the meaning.</span></h1>
+          <p class="intro-copy">Normalize Unicode and whitespace, then review every change. Common Markdown code and links stay untouched.</p>
+        </section>
+
+        <section class="workspace" aria-label="Text cleanup workspace">
+          <article class="editor-card">
+            <div class="editor-heading">
+              <label for="input-text" class="field-title"><span class="step-index">01</span> Your text</label>
+              <div class="editor-tools">
+                <span class="count" id="input-count">0 characters</span>
+                <button class="quiet-button" id="sample-button" type="button">Load example</button>
+              </div>
+            </div>
+            <textarea id="input-text" spellcheck="false" placeholder="Paste or type the text you want to clean…" aria-describedby="input-help"></textarea>
+            <div class="editor-foot">
+              <span id="input-help">Nothing is sent to a server.</span>
+              <button class="quiet-button clear-button" id="clear-button" type="button">Clear text</button>
+            </div>
+          </article>
+
+          <article class="editor-card output-card">
+            <div class="editor-heading">
+              <div class="field-title"><span class="step-index output-index">02</span> Cleaned text</div>
+              <div class="editor-tools">
+                <span class="count" id="output-count">Waiting for text</span>
+                <button class="quiet-button" id="copy-button" type="button" disabled>Copy</button>
+              </div>
+            </div>
+            <textarea id="output-text" readonly spellcheck="false" placeholder="Your cleaned text will appear here…" aria-label="Cleaned text"></textarea>
+            <div class="editor-foot output-foot">
+              <span id="output-state" role="status" aria-live="polite">Ready when you are.</span>
+              <span class="result-mark"><span class="result-dot"></span> Local result</span>
+            </div>
+          </article>
+        </section>
+
+        <div class="run-row">
+          <button class="run-button" id="clean-button" type="button">
+            <span>Clean text</span>
+            <span class="run-arrow" aria-hidden="true">↗</span>
+          </button>
+          <p class="run-note">A deterministic cleanup pass, with a review trail.</p>
+        </div>
+
+        <section class="details-grid" aria-label="Cleanup settings and report">
+          <article class="settings-card">
+            <div class="section-heading">
+              <div>
+                <div class="section-kicker">CONTROL THE PASS</div>
+                <h2>Cleanup settings</h2>
+              </div>
+              <span class="settings-icon" aria-hidden="true">⌘</span>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-copy">
+                <label for="normalization">Unicode form</label>
+                <p>Choose how equivalent characters are combined.</p>
+              </div>
+              <select id="normalization">
+                <option value="NFC" selected>NFC · preserve symbols</option>
+                <option value="NFKC">NFKC · fold compatibility forms</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-copy">
+                <label for="em-dashes">Paired em dashes</label>
+                <p>Convert likely asides into parentheses.</p>
+              </div>
+              <select id="em-dashes">
+                <option value="asides" selected>Convert likely asides</option>
+                <option value="keep">Keep and flag</option>
+              </select>
+            </div>
+
+            <div class="setting-row">
+              <div class="setting-copy">
+                <label for="zero-width">Zero-width spaces</label>
+                <p>Check word boundaries after changing them.</p>
+              </div>
+              <select id="zero-width">
+                <option value="remove" selected>Remove</option>
+                <option value="space">Replace with a space</option>
+                <option value="keep">Keep</option>
+              </select>
+            </div>
+
+            <label class="toggle-row" for="remove-bidi">
+              <span class="toggle-copy"><strong>Remove direction controls</strong><small>Off by default to preserve reading order.</small></span>
+              <input id="remove-bidi" type="checkbox" />
+              <span class="toggle-ui" aria-hidden="true"></span>
+            </label>
+
+            <details class="rewrite-details">
+              <summary>Exact text replacements <span class="optional-tag">Optional</span></summary>
+              <p class="rewrite-help">Add exact, case-sensitive replacements. These apply only to unprotected prose.</p>
+              <div id="rewrite-list" class="rewrite-list"></div>
+              <button class="quiet-button add-rewrite" id="add-rewrite" type="button">＋ Add replacement</button>
+            </details>
+          </article>
+
+          <article class="report-card" aria-live="polite" aria-atomic="true">
+            <div class="section-heading report-heading">
+              <div>
+                <div class="section-kicker">AFTER EACH RUN</div>
+                <h2>Change report</h2>
+              </div>
+              <span class="report-count" id="report-count">—</span>
+            </div>
+            <div id="report-content" class="report-content">
+              <div class="empty-report">
+                <span class="empty-glyph" aria-hidden="true">✳</span>
+                <p>Your cleanup summary and review notes will show up here.</p>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="architecture-section" aria-labelledby="architecture-title">
+          <div class="architecture-heading">
+            <div>
+              <div class="section-kicker">INTERACTIVE OVERVIEW</div>
+              <h2 id="architecture-title">System architecture</h2>
+            </div>
+            <a class="diagram-link" href="/architecture-overview.html?theme=dark" target="_blank" rel="noreferrer">Open standalone <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="diagram-frame">
+            <iframe title="Interactive system architecture diagram" src="/architecture-overview.html?theme=dark&amp;embed=1" loading="lazy"></iframe>
+          </div>
+        </section>
+      </main>
+
+      <footer class="footer">
+        <div><span class="footer-brand">unicodeclean</span><span class="footer-separator">·</span> Small edits, visible consequences.</div>
+        <div class="footer-links">
+          <a href="/architecture-overview.html?theme=dark" target="_blank" rel="noreferrer">Standalone diagram <span aria-hidden="true">↗</span></a>
+          <a href="https://github.com/shaxntanu/unicodeClean" target="_blank" rel="noreferrer">Source code <span aria-hidden="true">↗</span></a>
+          <span class="footer-local"><span class="local-dot"></span> No upload</span>
+        </div>
+      </footer>
+    </div>
+  </body>
+</html>

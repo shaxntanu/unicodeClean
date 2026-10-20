@@ -1,0 +1,316 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#11110f" />
+    <meta name="description" content="An interactive map of the Unicode Clean browser app and agent skill." />
+    <title>Unicode Clean — system architecture</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --page: #11110f;
+        --panel: #191a17;
+        --panel-raised: #20211d;
+        --ink: #f1f0e8;
+        --soft: #b9bab1;
+        --muted: #85877f;
+        --line: #34352f;
+        --violet: #aaaaff;
+        --violet-dim: #343454;
+        --green: #9ac49a;
+        --green-dim: #263527;
+        --amber: #e4c27e;
+        --amber-dim: #392f1e;
+        --blue: #8ebce4;
+        --blue-dim: #233648;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        font-synthesis: none;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-width: 320px; background: var(--page); color: var(--ink); }
+      a { color: var(--soft); text-decoration: none; }
+      a:hover { color: var(--violet); }
+      button { font: inherit; color: inherit; }
+      .page { width: min(1320px, calc(100% - 48px)); margin: 0 auto; padding: 22px 0 26px; }
+      .topbar { display: flex; align-items: center; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+      .brand { display: flex; align-items: center; gap: 11px; }
+      .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px; background: var(--violet); color: #181823; font-size: 18px; font-weight: 800; }
+      .brand-copy { display: grid; gap: 2px; }
+      .brand-copy strong { font-size: 12px; letter-spacing: -.2px; }
+      .brand-copy span { color: var(--muted); font-size: 9px; letter-spacing: 1.2px; text-transform: uppercase; }
+      .back-link { font-size: 11px; font-weight: 650; }
+      .intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; margin-bottom: 17px; }
+      .kicker { color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: 1.3px; text-transform: uppercase; }
+      h1 { margin: 5px 0 0; font-size: clamp(23px, 3vw, 32px); letter-spacing: -1.2px; line-height: 1.1; }
+      .intro p { max-width: 440px; margin: 0; color: var(--soft); font-size: 11px; line-height: 1.6; }
+      .diagram-shell { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #141512; box-shadow: 0 16px 48px rgba(0, 0, 0, .24); }
+      .diagram-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: #181916; }
+      .toolbar-label { display: flex; align-items: center; gap: 9px; color: var(--soft); font-size: 10px; font-weight: 650; }
+      .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(154, 196, 154, .12); }
+      .filters { display: flex; flex-wrap: wrap; gap: 6px; }
+      .filter { padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; font-size: 9px; font-weight: 650; }
+      .filter:hover, .filter[aria-pressed="true"] { border-color: #67679d; background: #292943; color: #d2d2ff; }
+      .svg-wrap { overflow: auto; padding: 6px; scrollbar-color: #4a4b44 transparent; }
+      svg { display: block; width: 100%; min-width: 840px; height: auto; }
+      .lane-bg { fill: #171815; stroke: #2f302a; stroke-width: 1; }
+      .lane-bg.agent { fill: #171817; }
+      .lane-label { fill: #777a73; font: 700 10px Inter, system-ui, sans-serif; letter-spacing: 1.5px; }
+      .lane-subtitle { fill: #85877f; font: 10px Inter, system-ui, sans-serif; }
+      .connector { fill: none; stroke: #62645d; stroke-width: 1.6; marker-end: url(#arrow); }
+      .connector.browser { stroke: #8989d2; marker-end: url(#arrow-violet); }
+      .connector.agent { stroke: #78a77d; marker-end: url(#arrow-green); }
+      .node { cursor: pointer; outline: none; transition: opacity .16s ease; }
+      .node rect { fill: #1e1f1b; stroke: #44453e; stroke-width: 1.2; transition: stroke .16s ease, fill .16s ease; }
+      .node.browser rect { stroke: #595990; }
+      .node.agent rect { stroke: #536b53; }
+      .node:hover rect, .node:focus rect, .node.selected rect { fill: #25251f; stroke: var(--violet); stroke-width: 2; }
+      .node.agent:hover rect, .node.agent:focus rect, .node.agent.selected rect { stroke: var(--green); }
+      .node-title { fill: var(--ink); font: 650 12px Inter, system-ui, sans-serif; }
+      .node-kicker { fill: var(--muted); font: 700 8px Inter, system-ui, sans-serif; letter-spacing: 1px; }
+      .node-copy { fill: #b7b8ae; font: 10px Inter, system-ui, sans-serif; }
+      .node-tag { fill: #d1d0c8; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
+      .node-icon { fill: #252641; }
+      .node.agent .node-icon { fill: #263527; }
+      .icon-letter { fill: var(--violet); font: 700 11px Inter, system-ui, sans-serif; text-anchor: middle; dominant-baseline: central; }
+      .node.agent .icon-letter { fill: var(--green); }
+      .lane { transition: opacity .18s ease; }
+      .lane.is-muted, .node.is-muted { opacity: .22; }
+      .detail-panel { display: flex; align-items: flex-start; gap: 12px; min-height: 69px; padding: 13px 15px; border-top: 1px solid var(--line); background: #181916; }
+      .detail-index { display: grid; flex: 0 0 27px; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: #292943; color: var(--violet); font: 700 10px ui-monospace, monospace; }
+      .detail-copy { display: grid; gap: 3px; }
+      .detail-copy strong { font-size: 10px; }
+      .detail-copy p { margin: 0; color: var(--soft); font-size: 10px; line-height: 1.55; }
+      .footnote { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 9px; line-height: 1.5; }
+      .footnote strong { color: var(--soft); font-weight: 650; }
+      html[data-embed="true"] .page { width: 100%; padding: 0; }
+      html[data-embed="true"] .topbar, html[data-embed="true"] .intro, html[data-embed="true"] .footnote { display: none; }
+      html[data-embed="true"] .diagram-shell { border: 0; border-radius: 0; box-shadow: none; }
+      html[data-embed="true"] .diagram-toolbar { padding: 9px 12px; }
+      html[data-embed="true"] .svg-wrap { padding: 4px; }
+      html[data-embed="true"] svg { min-width: 760px; }
+      html[data-embed="true"] .detail-panel { min-height: 62px; padding: 10px 12px; }
+      @media (max-width: 640px) {
+        .page { width: min(100% - 24px, 1320px); padding-top: 13px; }
+        .intro { align-items: flex-start; flex-direction: column; gap: 8px; }
+        .intro p { max-width: none; }
+        .diagram-toolbar { align-items: flex-start; flex-direction: column; }
+        .filters { width: 100%; }
+        .filter { flex: 1; }
+        .footnote { flex-direction: column; }
+      }
+      @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; } }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <a class="brand" href="/" aria-label="Unicode Clean home">
+          <span class="brand-mark" aria-hidden="true">U</span>
+          <span class="brand-copy"><strong>unicodeclean</strong><span>Architecture map</span></span>
+        </a>
+        <a class="back-link" href="/">← Back to the cleaner</a>
+      </header>
+
+      <section class="intro" aria-labelledby="page-title">
+        <div>
+          <div class="kicker">HOW THE TOOL WORKS</div>
+          <h1 id="page-title">One cleanup, two ways to use it.</h1>
+        </div>
+        <p>Explore the browser workflow or the agent skill. Both return cleaned text with a visible record of changes and review notes.</p>
+      </section>
+
+      <section class="diagram-shell" aria-label="Interactive architecture diagram">
+        <div class="diagram-toolbar">
+          <div class="toolbar-label"><span class="live-dot"></span><span>UNICODE CLEAN · DATA FLOW</span></div>
+          <div class="filters" role="group" aria-label="Focus a workflow">
+            <button class="filter" type="button" data-focus="all" aria-pressed="true">All paths</button>
+            <button class="filter" type="button" data-focus="browser" aria-pressed="false">Browser app</button>
+            <button class="filter" type="button" data-focus="agent" aria-pressed="false">Agent skill</button>
+          </div>
+        </div>
+
+        <div class="svg-wrap">
+          <svg viewBox="0 0 1180 680" role="img" aria-labelledby="diagram-title diagram-desc">
+            <title id="diagram-title">Unicode Clean browser and agent workflows</title>
+            <desc id="diagram-desc">Two local workflows clean supplied text, preserve common protected spans, and return an audit trail with review notes.</desc>
+            <defs>
+              <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#30312c" opacity=".55" /></pattern>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#777970" /></marker>
+              <marker id="arrow-violet" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8989d2" /></marker>
+              <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#78a77d" /></marker>
+            </defs>
+            <rect width="1180" height="680" rx="9" fill="#141512" />
+            <rect width="1180" height="680" rx="9" fill="url(#grid)" />
+
+            <g class="lane" data-lane="browser">
+              <rect class="lane-bg" x="22" y="24" width="1136" height="284" rx="12" />
+              <text class="lane-label" x="44" y="53">01 · BROWSER APP</text>
+              <text class="lane-subtitle" x="44" y="72">Sanitization stays in the user's browser; text is not uploaded.</text>
+              <path class="connector browser" d="M277 183 H323" />
+              <path class="connector browser" d="M552 183 H598" />
+              <path class="connector browser" d="M827 183 H873" />
+
+              <g class="node browser" data-node="browser-input" tabindex="0" role="button" aria-label="User text and cleanup options">
+                <rect x="48" y="112" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="73" cy="140" r="13" /><text class="icon-letter" x="73" y="140">1</text>
+                <text class="node-kicker" x="95" y="137">INPUT</text>
+                <text class="node-title" x="66" y="174">Text + settings</text>
+                <text class="node-copy" x="66" y="195">User supplies prose and selects</text>
+                <text class="node-copy" x="66" y="211">normalization and cleanup options.</text>
+                <text class="node-tag" x="66" y="235">textarea · NFC · options</text>
+              </g>
+
+              <g class="node browser" data-node="browser-ui" tabindex="0" role="button" aria-label="Unicode Clean browser interface">
+                <rect x="323" y="112" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="348" cy="140" r="13" /><text class="icon-letter" x="348" y="140">2</text>
+                <text class="node-kicker" x="370" y="137">PRESENTATION</text>
+                <text class="node-title" x="341" y="174">Browser interface</text>
+                <text class="node-copy" x="341" y="195">Reads options, invokes the cleanup</text>
+                <text class="node-copy" x="341" y="211">pass, and displays the result.</text>
+                <text class="node-tag" x="341" y="235">index.html · app.js</text>
+              </g>
+
+              <g class="node browser" data-node="browser-pass" tabindex="0" role="button" aria-label="Browser cleanup pass">
+                <rect x="598" y="112" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="623" cy="140" r="13" /><text class="icon-letter" x="623" y="140">3</text>
+                <text class="node-kicker" x="645" y="137">PROCESSING</text>
+                <text class="node-title" x="616" y="174">Cleanup pass</text>
+                <text class="node-copy" x="616" y="195">Normalizes Unicode and whitespace;</text>
+                <text class="node-copy" x="616" y="211">protects common code and URL spans.</text>
+                <text class="node-tag" x="616" y="235">local JavaScript · no fetch</text>
+              </g>
+
+              <g class="node browser" data-node="browser-report" tabindex="0" role="button" aria-label="Cleaned text and change report">
+                <rect x="873" y="112" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="898" cy="140" r="13" /><text class="icon-letter" x="898" y="140">4</text>
+                <text class="node-kicker" x="920" y="137">OUTPUT</text>
+                <text class="node-title" x="891" y="174">Text + audit trail</text>
+                <text class="node-copy" x="891" y="195">Shows changed text, counts, and</text>
+                <text class="node-copy" x="891" y="211">meaning-sensitive review notes.</text>
+                <text class="node-tag" x="891" y="235">copyable · local result</text>
+              </g>
+            </g>
+
+            <g class="lane" data-lane="agent">
+              <rect class="lane-bg agent" x="22" y="338" width="1136" height="318" rx="12" />
+              <text class="lane-label" x="44" y="369">02 · AGENT SKILL</text>
+              <text class="lane-subtitle" x="44" y="388">An agent follows SKILL.md and calls the bundled Python function.</text>
+              <path class="connector agent" d="M277 510 H323" />
+              <path class="connector agent" d="M552 510 H598" />
+              <path class="connector agent" d="M827 510 H873" />
+
+              <g class="node agent" data-node="agent-request" tabindex="0" role="button" aria-label="User requests text cleanup from an agent">
+                <rect x="48" y="439" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="73" cy="467" r="13" /><text class="icon-letter" x="73" y="467">1</text>
+                <text class="node-kicker" x="95" y="464">REQUEST</text>
+                <text class="node-title" x="66" y="501">Supplied text</text>
+                <text class="node-copy" x="66" y="522">User asks an agent for transparent</text>
+                <text class="node-copy" x="66" y="538">Unicode and whitespace cleanup.</text>
+                <text class="node-tag" x="66" y="562">runtime input · no file writes</text>
+              </g>
+
+              <g class="node agent" data-node="agent-skill" tabindex="0" role="button" aria-label="Unicode Clean skill instructions">
+                <rect x="323" y="439" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="348" cy="467" r="13" /><text class="icon-letter" x="348" y="467">2</text>
+                <text class="node-kicker" x="370" y="464">INSTRUCTIONS</text>
+                <text class="node-title" x="341" y="501">Agent workflow</text>
+                <text class="node-copy" x="341" y="522">Checks scope, chooses safe options,</text>
+                <text class="node-copy" x="341" y="538">inspects changes and review notes.</text>
+                <text class="node-tag" x="341" y="562">SKILL.md · policy · audit</text>
+              </g>
+
+              <g class="node agent" data-node="python-core" tabindex="0" role="button" aria-label="Python text sanitizer function">
+                <rect x="598" y="439" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="623" cy="467" r="13" /><text class="icon-letter" x="623" y="467">3</text>
+                <text class="node-kicker" x="645" y="464">PROCESSING</text>
+                <text class="node-title" x="616" y="501">Python helper</text>
+                <text class="node-copy" x="616" y="522">Calls the existing deterministic</text>
+                <text class="node-copy" x="616" y="538">sanitize_text() implementation.</text>
+                <text class="node-tag" x="616" y="562">text_sanitizer.py</text>
+              </g>
+
+              <g class="node agent" data-node="agent-result" tabindex="0" role="button" aria-label="Agent returns cleaned text and review notes">
+                <rect x="873" y="439" width="229" height="142" rx="10" />
+                <circle class="node-icon" cx="898" cy="467" r="13" /><text class="icon-letter" x="898" y="467">4</text>
+                <text class="node-kicker" x="920" y="464">RESPONSE</text>
+                <text class="node-title" x="891" y="501">Text + review notes</text>
+                <text class="node-copy" x="891" y="522">Returns the result and explains</text>
+                <text class="node-copy" x="891" y="538">edits that deserve human review.</text>
+                <text class="node-tag" x="891" y="562">visible changes · user control</text>
+              </g>
+            </g>
+          </svg>
+        </div>
+        <div class="detail-panel" aria-live="polite">
+          <span class="detail-index" id="detail-index">↳</span>
+          <div class="detail-copy">
+            <strong id="detail-title">Select a step to inspect it</strong>
+            <p id="detail-description">Choose any node in the map, or focus one of the two workflows above.</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="footnote">
+        <span><strong>Browser app:</strong> runs locally in the page; no network request sends text.</span>
+        <span><strong>Agent skill:</strong> wraps the Python helper with a review-first workflow.</span>
+      </div>
+    </main>
+
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+        if (params.get('embed') === '1') document.documentElement.setAttribute('data-embed', 'true');
+
+        var details = {
+          'browser-input': ['01', 'Text and settings', 'The user enters text and selects cleanup options such as normalization, paired em dashes, zero-width-space behavior, and bidirectional-control handling.'],
+          'browser-ui': ['02', 'Browser interface', 'The interface collects the selected options, passes the text to the browser cleanup code, and renders the result and report.'],
+          'browser-pass': ['03', 'Browser cleanup pass', 'The JavaScript pass runs in the page. It keeps common Markdown code and URL spans protected and does not upload text.'],
+          'browser-report': ['04', 'Text and audit trail', 'The user receives cleaned text, counts of edits, and review notes for potentially meaning-sensitive changes.'],
+          'agent-request': ['01', 'Supplied text', 'The agent works only with the text or document content included in the user’s request and the scope the user authorized.'],
+          'agent-skill': ['02', 'Agent workflow', 'SKILL.md tells the agent to read the function’s options, preserve meaning by default, inspect the result, and report changes clearly.'],
+          'python-core': ['03', 'Python helper', 'The skill calls sanitize_text() from text_sanitizer.py. The helper is deterministic, dependency-free, and does not read or write files.'],
+          'agent-result': ['04', 'Text and review notes', 'The agent returns the result with change counts and any review notes, leaving the user in control of whether to save or apply it.']
+        };
+
+        var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-node]'));
+        var lanes = Array.prototype.slice.call(document.querySelectorAll('[data-lane]'));
+        var filters = Array.prototype.slice.call(document.querySelectorAll('[data-focus]'));
+        var title = document.getElementById('detail-title');
+        var description = document.getElementById('detail-description');
+        var index = document.getElementById('detail-index');
+
+        function selectNode(node) {
+          var id = node.getAttribute('data-node');
+          var content = details[id];
+          nodes.forEach(function (item) { item.classList.toggle('selected', item === node); });
+          index.textContent = content[0];
+          title.textContent = content[1];
+          description.textContent = content[2];
+        }
+
+        nodes.forEach(function (node) {
+          node.addEventListener('click', function () { selectNode(node); });
+          node.addEventListener('keydown', function (event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              selectNode(node);
+            }
+          });
+        });
+
+        filters.forEach(function (filter) {
+          filter.addEventListener('click', function () {
+            var focus = filter.getAttribute('data-focus');
+            filters.forEach(function (item) { item.setAttribute('aria-pressed', String(item === filter)); });
+            lanes.forEach(function (lane) {
+              lane.classList.toggle('is-muted', focus !== 'all' && lane.getAttribute('data-lane') !== focus);
+            });
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>
