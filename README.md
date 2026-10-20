@@ -1,10 +1,18 @@
-# Unicode-Aware Text Sanitizer
-
-[![Live Archify diagram](https://img.shields.io/website?url=https%3A%2F%2Fshaxntanu.github.io%2FBypassing-AI-detection-on-AI-Generated-Document%2F&label=live%20diagram)](https://shaxntanu.github.io/Bypassing-AI-detection-on-AI-Generated-Document/)
+# Unicode Clean
 
 This repository contains a small, dependency-free Python utility for conservatively cleaning prose. It normalizes selected Unicode and whitespace characters, applies optional exact text replacements, and reports both the changes it made and cases that need human review.
 
 The repository name reflects its original project context. The included code does not identify AI-generated writing, attempt to evade AI detectors, or guarantee grammar or detector outcomes.
+
+## Codex skill
+
+This repository also packages the sanitizer as the `unicode-clean` skill. Install the repository contents in a skill directory named `unicode-clean` under `$CODEX_HOME/skills` (or `~/.codex/skills` when `CODEX_HOME` is unset). [`SKILL.md`](SKILL.md) guides an agent to apply the existing function to supplied text, inspect its audit trail, and return the cleaned result with any review notes. The Python module and its direct-run demo remain available.
+
+The skill is for text hygiene and transparent cleanup. It does not rewrite prose to conceal AI authorship or optimize for AI-detector scores.
+
+## Web app
+
+Open [`index.html`](index.html) locally or import this repository into Vercel. The static HTML, CSS, and JavaScript app has no build step or package dependencies; sanitization runs in the browser, so text is not uploaded. The interactive architecture diagram is available in the app and as a standalone page at [`architecture-overview.html`](architecture-overview.html).
 
 ## What it does
 
