@@ -1,23 +1,22 @@
 ---
 name: unicode-clean
-description: Clean Unicode and whitespace in supplied prose with reviewable changes while preserving common Markdown code and URL spans. Use for text hygiene, not rewriting or authorship analysis.
+description: Apply a final Unicode and whitespace cleanup to agent-authored documents or supplied prose, preserving wording, common Markdown code, and URLs while reporting changes for review. Use when creating or revising a document, or when the user asks to clean text; this is not prose rewriting or detector evasion.
 ---
 
 # Unicode Clean
 
-Use the bundled `text_sanitizer.py` function to clean text predictably and return its change counts and review notes. The function reads and writes no files; keep file access and saving under the user's requested scope.
+Use this skill as a last-mile hygiene pass while creating or revising a document, or when the user asks to clean supplied prose. Keep the author's wording, tone, and claims intact.
 
 ## Workflow
 
-1. Identify the text or requested local document and the cleanup the user wants. Read only the relevant content. Preserve the source and return the result in chat unless the user asks for a file.
-2. Read the `sanitize_text` docstring in `text_sanitizer.py` before choosing non-default options. Resolve the helper beside this `SKILL.md`; do not assume the caller's working directory. Import and call `sanitize_text` instead of reimplementing its Unicode rules. Pass user content as runtime data, not interpolated shell or Python source.
-3. For ordinary cleanup, use the defaults. Keep NFC normalization and preserve bidirectional controls unless the user requests otherwise. Use NFKC only when compatibility folding is intended, since it can change superscripts and other symbols. Treat zero-width-space edits and bidi-control removals as meaning-sensitive and check the surrounding text.
-4. Supply `rewrites` only for exact replacement pairs the user provides or explicitly approves. Do not invent sentence rewrites or change wording to make text sound more human.
-5. Inspect `result.text`, `result.changes`, and every item in `result.review`. Check meaning, word boundaries, reading order, and formatting where the notes indicate a possible change. If an edit is ambiguous, preserve the original passage and ask the user to review that specific change.
-6. Return the cleaned text or a concise diff, followed by the change counts and review notes. Save to a separate requested path; overwrite a source file only when the user explicitly asks.
+1. Draft or revise the requested content normally. Apply cleanup to the final user-facing prose before delivery; skip it if the user asks you to preserve the text exactly or omit cleanup.
+2. For an existing document, use the host's document tools to inspect and edit only the requested material. Pass prose segments as strings; do not pass binary files, markup, code, or whole document packages through the sanitizer. Preserve the source and save or overwrite only as the user requested.
+3. Resolve `text_sanitizer.py` beside this `SKILL.md`. Read the `sanitize_text` docstring before choosing non-default options, then import and call `sanitize_text` instead of reimplementing its rules. Pass text as runtime data, not as interpolated shell or Python source.
+4. Use defaults unless the user requests otherwise. Keep NFC normalization and preserve bidirectional controls. Use NFKC only when compatibility folding is intended. Treat zero-width-space changes, bidi-control removal, and inferred paired-em-dash conversions as meaning-sensitive; inspect nearby text and each review note.
+5. Return the cleaned text or deliver the requested document, plus a concise change summary and every relevant review note. If an edit could change meaning, preserve the original passage and flag it for the user.
 
 ## Scope
 
-This skill performs deterministic text hygiene. It is not a grammar or style rewriter, plagiarism checker, authorship classifier, or AI-detector bypass. Do not test or optimize text against AI-detector scores or alter prose to conceal AI authorship. If asked for detector evasion, explain this boundary and offer transparent cleanup, clarity edits, or an appropriate disclosure instead.
+The helper deterministically cleans selected Unicode and whitespace characters, applies only exact user-approved replacements, and reports changes. It does not rewrite prose to make it sound more human, verify authorship, or optimize for AI-detector scores. If asked for detector evasion, explain this boundary and offer transparent text cleanup or clarity edits that do not conceal authorship.
 
-The utility protects common Markdown code fences, indented code, inline backticks, and simple URL spans, but it is not a complete Markdown or HTML parser. Keep its limitations in mind when processing mixed-format documents.
+It protects common Markdown code fences, indented code, inline backticks, and simple URL spans, but it is not a complete Markdown or HTML parser. Keep those limits in mind when handling mixed-format content.

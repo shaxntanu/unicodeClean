@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="dark">
+    <html lang="en" data-theme="dark" data-preset="classic">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -29,6 +29,16 @@
         text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
       }
+      :root[data-theme="light"] {
+        color-scheme: light;
+        --page: #f0f0ec; --panel: #fbfbf8; --panel-raised: #f3f3ef;
+        --ink: #20211e; --soft: #55574f; --muted: #777970; --line: #d8d9d2;
+        --violet: #5757bd; --violet-dim: #e4e4fb; --green: #407a46; --green-dim: #e4efe4;
+        --amber: #8e661f; --amber-dim: #f3ead8; --blue: #3d719c; --blue-dim: #e3edf4;
+      }
+      :root[data-preset="signal-flow"] { --violet: #69d9ff; --violet-dim: #173544; --green: #98e88e; --green-dim: #1e3827; --blue: #83a9ff; --blue-dim: #1f2b49; }
+      :root[data-preset="blueprint"] { --page: #071522; --panel: #0b1e30; --panel-raised: #10273b; --ink: #e1f0ff; --soft: #a4c6e6; --muted: #7894ad; --line: #1d4562; --violet: #63caff; --violet-dim: #102d44; --green: #74e2c2; --green-dim: #10342e; --blue: #82bcff; --blue-dim: #102b45; }
+      :root[data-preset="editorial"] { --page: #171315; --panel: #211b1e; --panel-raised: #2a2225; --ink: #f3e9e7; --soft: #cfbdb9; --muted: #9d8582; --line: #493638; --violet: #f3a7c4; --violet-dim: #412634; --green: #b2d69a; --green-dim: #2d3927; --blue: #a6c4df; --blue-dim: #26333f; }
       * { box-sizing: border-box; }
       body { margin: 0; min-width: 320px; background: var(--page); color: var(--ink); }
       a { color: var(--soft); text-decoration: none; }
@@ -46,43 +56,96 @@
       .kicker { color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: 1.3px; text-transform: uppercase; }
       h1 { margin: 5px 0 0; font-size: clamp(23px, 3vw, 32px); letter-spacing: -1.2px; line-height: 1.1; }
       .intro p { max-width: 440px; margin: 0; color: var(--soft); font-size: 11px; line-height: 1.6; }
-      .diagram-shell { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #141512; box-shadow: 0 16px 48px rgba(0, 0, 0, .24); }
-      .diagram-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: #181916; }
+      .diagram-shell { position: relative; overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--page); box-shadow: 0 16px 48px rgba(0, 0, 0, .24); }
+      .diagram-toolbar { display: grid; gap: 9px; padding: 11px 13px; border-bottom: 1px solid var(--line); background: var(--panel); }
+      .toolbar-row, .toolbar-actions, .toolbar-identity { display: flex; align-items: center; gap: 8px; }
+      .toolbar-row { justify-content: space-between; }
+      .toolbar-actions { flex-wrap: wrap; }
       .toolbar-label { display: flex; align-items: center; gap: 9px; color: var(--soft); font-size: 10px; font-weight: 650; }
+      .toolbar-button { display: inline-flex; align-items: center; gap: 6px; min-height: 29px; padding: 0 9px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; font-size: 9px; font-weight: 650; transition: border-color .15s ease, background .15s ease, color .15s ease; }
+      .toolbar-button:hover, .toolbar-button[aria-pressed="true"] { border-color: #6969a4; background: var(--violet-dim); color: var(--violet); }
+      .toolbar-button:focus-visible, .filter:focus-visible, .preset-option:focus-visible, .map-node:focus-visible, .finder-result:focus-visible, .zoom-button:focus-visible, .guide-close:focus-visible { outline: 2px solid var(--violet); outline-offset: 2px; }
+      .menu-wrap { position: relative; }
+      .popover { position: absolute; z-index: 8; top: calc(100% + 7px); left: 0; display: grid; min-width: 200px; padding: 6px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); box-shadow: 0 14px 32px rgba(0, 0, 0, .36); }
+      .popover[hidden] { display: none; }
+      .preset-option, .finder-result, .map-node { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px; border: 0; border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; text-align: left; font: inherit; font-size: 10px; }
+      .preset-option:hover, .finder-result:hover, .map-node:hover { background: var(--panel-raised); color: var(--ink); }
+      .preset-swatch { width: 9px; height: 9px; border-radius: 3px; background: var(--violet); box-shadow: 0 0 0 3px var(--violet-dim); }
+      .zoom-group { display: flex; align-items: center; gap: 4px; margin-left: auto; }
+      .zoom-button { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; font-size: 13px; }
+      .zoom-button:hover { background: var(--panel-raised); color: var(--ink); }
+      .zoom-value { min-width: 42px; color: var(--muted); text-align: center; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
       .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(154, 196, 154, .12); }
       .filters { display: flex; flex-wrap: wrap; gap: 6px; }
       .filter { padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; font-size: 9px; font-weight: 650; }
-      .filter:hover, .filter[aria-pressed="true"] { border-color: #67679d; background: #292943; color: #d2d2ff; }
-      .svg-wrap { overflow: auto; padding: 6px; scrollbar-color: #4a4b44 transparent; }
+      .filter:hover, .filter[aria-pressed="true"] { border-color: #67679d; background: var(--violet-dim); color: var(--violet); }
+      .svg-wrap { position: relative; overflow: auto; padding: 6px; scrollbar-color: #4a4b44 transparent; cursor: grab; }
+      .svg-wrap.dragging { cursor: grabbing; }
       svg { display: block; width: 100%; min-width: 840px; height: auto; }
-      .lane-bg { fill: #171815; stroke: #2f302a; stroke-width: 1; }
-      .lane-bg.agent { fill: #171817; }
-      .lane-label { fill: #777a73; font: 700 10px Inter, system-ui, sans-serif; letter-spacing: 1.5px; }
-      .lane-subtitle { fill: #85877f; font: 10px Inter, system-ui, sans-serif; }
-      .connector { fill: none; stroke: #62645d; stroke-width: 1.6; marker-end: url(#arrow); }
-      .connector.browser { stroke: #8989d2; marker-end: url(#arrow-violet); }
-      .connector.agent { stroke: #78a77d; marker-end: url(#arrow-green); }
+      .lane-bg { fill: var(--panel); stroke: var(--line); stroke-width: 1; }
+      .lane-bg.agent { fill: var(--panel); }
+      .lane-label { fill: var(--muted); font: 700 10px Inter, system-ui, sans-serif; letter-spacing: 1.5px; }
+      .lane-subtitle { fill: var(--soft); font: 10px Inter, system-ui, sans-serif; }
+      .connector { fill: none; stroke: var(--muted); stroke-width: 1.6; marker-end: url(#arrow); transition: opacity .18s ease, stroke .18s ease; }
+      .connector.browser { stroke: var(--violet); marker-end: url(#arrow-violet); }
+      .connector.agent { stroke: var(--green); marker-end: url(#arrow-green); }
+      .connector.asset-flow { stroke: var(--blue); stroke-dasharray: 4 4; marker-end: url(#arrow-blue); }
+      .connector.route-active { stroke-width: 3.2; stroke-dasharray: 6 4; animation: route-flow .8s linear infinite; }
+      @keyframes route-flow { to { stroke-dashoffset: -20; } }
       .node { cursor: pointer; outline: none; transition: opacity .16s ease; }
-      .node rect { fill: #1e1f1b; stroke: #44453e; stroke-width: 1.2; transition: stroke .16s ease, fill .16s ease; }
-      .node.browser rect { stroke: #595990; }
-      .node.agent rect { stroke: #536b53; }
-      .node:hover rect, .node:focus rect, .node.selected rect { fill: #25251f; stroke: var(--violet); stroke-width: 2; }
+      .node rect { fill: var(--panel-raised); stroke: var(--line); stroke-width: 1.2; transition: stroke .16s ease, fill .16s ease; }
+      .node.browser rect { stroke: var(--violet-dim); }
+      .node.agent rect { stroke: var(--green-dim); }
+      .node:hover rect, .node:focus rect, .node.selected rect { fill: var(--panel-raised); stroke: var(--violet); stroke-width: 2; }
       .node.agent:hover rect, .node.agent:focus rect, .node.agent.selected rect { stroke: var(--green); }
+      .node.route-step rect { stroke: var(--violet); stroke-width: 2; }
+      .node.agent.route-step rect { stroke: var(--green); }
+      .node.route-start rect, .node.route-end rect { stroke: var(--amber); stroke-width: 2.5; }
       .node-title { fill: var(--ink); font: 650 12px Inter, system-ui, sans-serif; }
       .node-kicker { fill: var(--muted); font: 700 8px Inter, system-ui, sans-serif; letter-spacing: 1px; }
-      .node-copy { fill: #b7b8ae; font: 10px Inter, system-ui, sans-serif; }
-      .node-tag { fill: #d1d0c8; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
-      .node-icon { fill: #252641; }
-      .node.agent .node-icon { fill: #263527; }
+      .node-copy { fill: var(--soft); font: 10px Inter, system-ui, sans-serif; }
+      .node-tag { fill: var(--ink); font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
+      .node-icon { fill: var(--violet-dim); }
+      .node.agent .node-icon { fill: var(--green-dim); }
+      .node.asset-node rect { fill: var(--blue-dim); stroke: var(--blue); stroke-dasharray: 4 3; }
       .icon-letter { fill: var(--violet); font: 700 11px Inter, system-ui, sans-serif; text-anchor: middle; dominant-baseline: central; }
       .node.agent .icon-letter { fill: var(--green); }
       .lane { transition: opacity .18s ease; }
-      .lane.is-muted, .node.is-muted { opacity: .22; }
-      .detail-panel { display: flex; align-items: flex-start; gap: 12px; min-height: 69px; padding: 13px 15px; border-top: 1px solid var(--line); background: #181916; }
-      .detail-index { display: grid; flex: 0 0 27px; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: #292943; color: var(--violet); font: 700 10px ui-monospace, monospace; }
+      .lane.is-muted, .node.is-muted, .connector.is-muted { opacity: .2; }
+      .node.related rect { stroke: var(--blue); stroke-width: 2; }
+      .detail-panel { display: flex; align-items: flex-start; gap: 12px; min-height: 69px; padding: 13px 15px; border-top: 1px solid var(--line); background: var(--panel); }
+      .detail-panel[hidden] { display: none; }
+      .detail-index { display: grid; flex: 0 0 27px; place-items: center; width: 27px; height: 27px; border-radius: 8px; background: var(--violet-dim); color: var(--violet); font: 700 10px ui-monospace, monospace; }
       .detail-copy { display: grid; gap: 3px; }
       .detail-copy strong { font-size: 10px; }
       .detail-copy p { margin: 0; color: var(--soft); font-size: 10px; line-height: 1.55; }
+      .detail-meta { margin-top: 3px; color: var(--muted); font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
+      .overlay-panel { position: absolute; z-index: 6; top: 100px; right: 13px; width: min(290px, calc(100% - 26px)); max-height: 340px; overflow: auto; padding: 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--panel); box-shadow: 0 14px 32px rgba(0, 0, 0, .42); }
+      .overlay-panel[hidden] { display: none; }
+      .overlay-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 8px; color: var(--muted); font-size: 9px; font-weight: 750; letter-spacing: 1px; text-transform: uppercase; }
+      .overlay-close { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 16px; }
+      .finder-input { width: 100%; height: 34px; margin-bottom: 6px; padding: 0 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--page); color: var(--ink); font: inherit; font-size: 10px; }
+      .finder-results, .map-results { display: grid; gap: 2px; }
+      .map-node small, .finder-result small { display: block; margin-left: auto; color: var(--muted); font-size: 8px; }
+      .map-node::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: var(--violet); }
+      .map-node[data-lane="agent"]::before { background: var(--green); }
+      .route-status { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 13px; border-bottom: 1px solid var(--line); background: var(--violet-dim); color: var(--soft); font-size: 9px; }
+      .route-status[hidden] { display: none; }
+      .route-status button { border: 0; background: transparent; color: var(--violet); cursor: pointer; font-size: 9px; font-weight: 700; }
+      dialog.guide { width: min(440px, calc(100% - 30px)); padding: 0; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--ink); box-shadow: 0 22px 80px rgba(0, 0, 0, .6); }
+      dialog.guide::backdrop { background: rgba(0, 0, 0, .66); backdrop-filter: blur(3px); }
+      .guide-header { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+      .guide-header strong { font-size: 12px; }
+      .guide-close { border: 0; background: transparent; color: var(--muted); cursor: pointer; font-size: 18px; }
+      .guide-body { display: grid; gap: 12px; padding: 15px 16px; color: var(--soft); font-size: 10px; line-height: 1.6; }
+      .guide-body p { margin: 0; }
+      .guide-shortcuts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; }
+      .guide-shortcuts span { display: flex; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line); }
+      kbd { padding: 2px 5px; border: 1px solid var(--line); border-radius: 4px; background: var(--panel-raised); color: var(--ink); font: 9px ui-monospace, monospace; }
+      .presentation .page { width: 100%; padding: 0; }
+      .presentation .topbar, .presentation .intro, .presentation .footnote, .presentation .diagram-toolbar { display: none; }
+      .presentation .diagram-shell { position: fixed; z-index: 20; inset: 0; height: 100vh; border: 0; border-radius: 0; }
+      .presentation .svg-wrap { height: calc(100vh - 69px); }
       .footnote { display: flex; justify-content: space-between; gap: 12px; margin-top: 12px; color: var(--muted); font-size: 9px; line-height: 1.5; }
       .footnote strong { color: var(--soft); font-weight: 650; }
       html[data-embed="true"] .page { width: 100%; padding: 0; }
@@ -96,7 +159,9 @@
         .page { width: min(100% - 24px, 1320px); padding-top: 13px; }
         .intro { align-items: flex-start; flex-direction: column; gap: 8px; }
         .intro p { max-width: none; }
-        .diagram-toolbar { align-items: flex-start; flex-direction: column; }
+        .toolbar-row { align-items: flex-start; flex-direction: column; }
+        .toolbar-identity { width: 100%; justify-content: space-between; }
+        .toolbar-actions { width: 100%; }
         .filters { width: 100%; }
         .filter { flex: 1; }
         .footnote { flex-direction: column; }
@@ -123,93 +188,155 @@
       </section>
 
       <section class="diagram-shell" aria-label="Interactive architecture diagram">
-        <div class="diagram-toolbar">
-          <div class="toolbar-label"><span class="live-dot"></span><span>UNICODE CLEAN · DATA FLOW</span></div>
-          <div class="filters" role="group" aria-label="Focus a workflow">
-            <button class="filter" type="button" data-focus="all" aria-pressed="true">All paths</button>
-            <button class="filter" type="button" data-focus="browser" aria-pressed="false">Browser app</button>
-            <button class="filter" type="button" data-focus="agent" aria-pressed="false">Agent skill</button>
+        <div class="diagram-toolbar" role="toolbar" aria-label="Diagram actions">
+          <div class="toolbar-row">
+            <div class="toolbar-identity">
+              <div class="toolbar-label"><span class="live-dot"></span><span>UNICODE CLEAN · DATA FLOW</span></div>
+              <div class="toolbar-actions">
+                <button class="toolbar-button" id="theme-toggle" type="button" aria-pressed="false" title="Toggle color theme (T)">◐ Theme</button>
+                <div class="menu-wrap">
+                  <button class="toolbar-button" id="preset-toggle" type="button" aria-expanded="false" aria-controls="preset-menu" title="Choose visual style (S)">Style: <span id="preset-label">Classic</span> ▾</button>
+                  <div class="popover" id="preset-menu" role="menu" aria-label="Visual style" hidden>
+                    <button class="preset-option" type="button" role="menuitemradio" data-preset="classic"><span class="preset-swatch"></span>Classic<small>Technical default</small></button>
+                    <button class="preset-option" type="button" role="menuitemradio" data-preset="signal-flow"><span class="preset-swatch"></span>Signal flow<small>Motion-forward</small></button>
+                    <button class="preset-option" type="button" role="menuitemradio" data-preset="blueprint"><span class="preset-swatch"></span>Blueprint<small>Engineering review</small></button>
+                    <button class="preset-option" type="button" role="menuitemradio" data-preset="editorial"><span class="preset-swatch"></span>Editorial<small>Publication style</small></button>
+                  </div>
+                </div>
+                <button class="toolbar-button" id="search-toggle" type="button" aria-expanded="false" aria-controls="finder-panel" title="Find a node (/)">⌕ Find</button>
+                <button class="toolbar-button" id="map-toggle" type="button" aria-pressed="false" aria-controls="map-panel" title="Open node map (M)">▦ Map</button>
+                <button class="toolbar-button" id="route-toggle" type="button" aria-pressed="false" title="Trace a route (R)">↝ Path</button>
+                <button class="toolbar-button" id="details-toggle" type="button" aria-pressed="true" title="Toggle details (L)">◉ Lens</button>
+                <button class="toolbar-button" id="presentation-toggle" type="button" aria-pressed="false" title="Presentation mode (F)">▣ Present</button>
+                <button class="toolbar-button" id="export-toggle" type="button" title="Export diagram (E)">↓ Export</button>
+                <button class="toolbar-button" id="guide-toggle" type="button" title="Diagram guide (?)">? Guide</button>
+              </div>
+            </div>
           </div>
+          <div class="toolbar-row">
+            <div class="filters" role="group" aria-label="Focus a workflow">
+              <button class="filter" type="button" data-focus="all" aria-pressed="true">All paths</button>
+              <button class="filter" type="button" data-focus="browser" aria-pressed="false">Browser app</button>
+              <button class="filter" type="button" data-focus="agent" aria-pressed="false">Agent skill</button>
+            </div>
+            <div class="zoom-group" role="group" aria-label="Diagram zoom">
+              <button class="zoom-button" id="zoom-out" type="button" aria-label="Zoom out (minus)">−</button>
+              <span class="zoom-value" id="zoom-value">100%</span>
+              <button class="zoom-button" id="zoom-reset" type="button" aria-label="Reset view (0)">Reset</button>
+              <button class="zoom-button" id="zoom-in" type="button" aria-label="Zoom in (plus)">+</button>
+            </div>
+          </div>
+        </div>
+        <div class="route-status" id="route-status" role="status" aria-live="polite" hidden>
+          <span id="route-message">Choose a start node, then an end node in the same workflow.</span>
+          <button id="route-clear" type="button">Clear path</button>
+        </div>
+        <div class="overlay-panel" id="finder-panel" aria-label="Find a node" hidden>
+          <div class="overlay-heading"><span>Find a step</span><button class="overlay-close" type="button" data-close-panel="finder-panel" aria-label="Close finder">×</button></div>
+          <input class="finder-input" id="finder-input" type="search" placeholder="Search this diagram…" autocomplete="off" />
+          <div class="finder-results" id="finder-results"></div>
+        </div>
+        <div class="overlay-panel" id="map-panel" aria-label="Node map" hidden>
+          <div class="overlay-heading"><span>System map</span><button class="overlay-close" type="button" data-close-panel="map-panel" aria-label="Close map">×</button></div>
+          <div class="map-results" id="map-results"></div>
         </div>
 
         <div class="svg-wrap">
           <svg viewBox="0 0 1180 680" role="img" aria-labelledby="diagram-title diagram-desc">
             <title id="diagram-title">Unicode Clean browser and agent workflows</title>
-            <desc id="diagram-desc">Two local workflows clean supplied text, preserve common protected spans, and return an audit trail with review notes.</desc>
+            <desc id="diagram-desc">The browser workflow sends text only to a local worker where Pyodide runs Python in WebAssembly. A separate dashed arrow shows that the CDN supplies runtime files only. The agent workflow calls the Python helper locally.</desc>
             <defs>
-              <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="#30312c" opacity=".55" /></pattern>
-              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#777970" /></marker>
-              <marker id="arrow-violet" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#8989d2" /></marker>
-              <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#78a77d" /></marker>
+              <pattern id="grid" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="1" cy="1" r="1" fill="var(--line)" opacity=".55" /></pattern>
+              <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--muted)" /></marker>
+              <marker id="arrow-violet" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--violet)" /></marker>
+              <marker id="arrow-green" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--green)" /></marker>
+              <marker id="arrow-blue" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--blue)" /></marker>
             </defs>
-            <rect width="1180" height="680" rx="9" fill="#141512" />
+            <rect width="1180" height="680" rx="9" fill="var(--page)" />
             <rect width="1180" height="680" rx="9" fill="url(#grid)" />
 
             <g class="lane" data-lane="browser">
               <rect class="lane-bg" x="22" y="24" width="1136" height="284" rx="12" />
               <text class="lane-label" x="44" y="53">01 · BROWSER APP</text>
-              <text class="lane-subtitle" x="44" y="72">Sanitization stays in the user's browser; text is not uploaded.</text>
-              <path class="connector browser" d="M277 183 H323" />
-              <path class="connector browser" d="M552 183 H598" />
-              <path class="connector browser" d="M827 183 H873" />
+              <text class="lane-subtitle" x="44" y="72">Text stays in browser memory. Only Python runtime files are downloaded.</text>
+              <path class="connector browser" data-edge="browser-input browser-ui" d="M228 183 H278" />
+              <path class="connector browser" data-edge="browser-ui browser-worker" d="M458 183 H508" />
+              <path class="connector browser" data-edge="browser-worker python-core" d="M688 183 H738" />
+              <path class="connector browser" data-edge="python-core browser-report" d="M918 183 H968" />
+              <path class="connector asset-flow" data-edge="runtime-cdn python-core" d="M840 279 H828 V254" />
 
               <g class="node browser" data-node="browser-input" tabindex="0" role="button" aria-label="User text and cleanup options">
-                <rect x="48" y="112" width="229" height="142" rx="10" />
+                <rect x="48" y="112" width="180" height="142" rx="10" />
                 <circle class="node-icon" cx="73" cy="140" r="13" /><text class="icon-letter" x="73" y="140">1</text>
                 <text class="node-kicker" x="95" y="137">INPUT</text>
                 <text class="node-title" x="66" y="174">Text + settings</text>
-                <text class="node-copy" x="66" y="195">User supplies prose and selects</text>
-                <text class="node-copy" x="66" y="211">normalization and cleanup options.</text>
-                <text class="node-tag" x="66" y="235">textarea · NFC · options</text>
+                <text class="node-copy" x="66" y="195">User enters text and chooses</text>
+                <text class="node-copy" x="66" y="211">cleanup options in the page.</text>
+                <text class="node-tag" x="66" y="235">textarea · options</text>
               </g>
 
               <g class="node browser" data-node="browser-ui" tabindex="0" role="button" aria-label="Unicode Clean browser interface">
-                <rect x="323" y="112" width="229" height="142" rx="10" />
-                <circle class="node-icon" cx="348" cy="140" r="13" /><text class="icon-letter" x="348" y="140">2</text>
-                <text class="node-kicker" x="370" y="137">PRESENTATION</text>
-                <text class="node-title" x="341" y="174">Browser interface</text>
-                <text class="node-copy" x="341" y="195">Reads options, invokes the cleanup</text>
-                <text class="node-copy" x="341" y="211">pass, and displays the result.</text>
-                <text class="node-tag" x="341" y="235">index.html · app.js</text>
+                <rect x="278" y="112" width="180" height="142" rx="10" />
+                <circle class="node-icon" cx="303" cy="140" r="13" /><text class="icon-letter" x="303" y="140">2</text>
+                <text class="node-kicker" x="325" y="137">INTERFACE</text>
+                <text class="node-title" x="296" y="174">Browser UI</text>
+                <text class="node-copy" x="296" y="195">Posts text to a local worker;</text>
+                <text class="node-copy" x="296" y="211">renders the returned result.</text>
+                <text class="node-tag" x="296" y="235">postMessage · no HTTP</text>
               </g>
 
-              <g class="node browser" data-node="browser-pass" tabindex="0" role="button" aria-label="Browser cleanup pass">
-                <rect x="598" y="112" width="229" height="142" rx="10" />
-                <circle class="node-icon" cx="623" cy="140" r="13" /><text class="icon-letter" x="623" y="140">3</text>
-                <text class="node-kicker" x="645" y="137">PROCESSING</text>
-                <text class="node-title" x="616" y="174">Cleanup pass</text>
-                <text class="node-copy" x="616" y="195">Normalizes Unicode and whitespace;</text>
-                <text class="node-copy" x="616" y="211">protects common code and URL spans.</text>
-                <text class="node-tag" x="616" y="235">local JavaScript · no fetch</text>
+              <g class="node browser" data-node="browser-worker" tabindex="0" role="button" aria-label="In-browser Python worker">
+                <rect x="508" y="112" width="180" height="142" rx="10" />
+                <circle class="node-icon" cx="533" cy="140" r="13" /><text class="icon-letter" x="533" y="140">3</text>
+                <text class="node-kicker" x="555" y="137">LOCAL WORKER</text>
+                <text class="node-title" x="526" y="174">Browser worker</text>
+                <text class="node-copy" x="526" y="195">Receives text by local message;</text>
+                <text class="node-copy" x="526" y="211">no request sends the text away.</text>
+                <text class="node-tag" x="526" y="235">memory · no upload</text>
+              </g>
+
+              <g class="node browser" data-node="python-core" tabindex="0" role="button" aria-label="Pyodide WebAssembly Python runtime and bundled sanitizer">
+                <rect x="738" y="112" width="180" height="142" rx="10" />
+                <circle class="node-icon" cx="763" cy="140" r="13" /><text class="icon-letter" x="763" y="140">4</text>
+                <text class="node-kicker" x="785" y="137">PYTHON · WASM</text>
+                <text class="node-title" x="756" y="174">Pyodide runtime</text>
+                <text class="node-copy" x="756" y="195">Runs text_sanitizer.py inside</text>
+                <text class="node-copy" x="756" y="211">the browser worker.</text>
+                <text class="node-tag" x="756" y="235">local Python · WebAssembly</text>
               </g>
 
               <g class="node browser" data-node="browser-report" tabindex="0" role="button" aria-label="Cleaned text and change report">
-                <rect x="873" y="112" width="229" height="142" rx="10" />
-                <circle class="node-icon" cx="898" cy="140" r="13" /><text class="icon-letter" x="898" y="140">4</text>
-                <text class="node-kicker" x="920" y="137">OUTPUT</text>
-                <text class="node-title" x="891" y="174">Text + audit trail</text>
-                <text class="node-copy" x="891" y="195">Shows changed text, counts, and</text>
-                <text class="node-copy" x="891" y="211">meaning-sensitive review notes.</text>
-                <text class="node-tag" x="891" y="235">copyable · local result</text>
+                <rect x="968" y="112" width="180" height="142" rx="10" />
+                <circle class="node-icon" cx="993" cy="140" r="13" /><text class="icon-letter" x="993" y="140">5</text>
+                <text class="node-kicker" x="1015" y="137">OUTPUT</text>
+                <text class="node-title" x="986" y="174">Text + audit trail</text>
+                <text class="node-copy" x="986" y="195">Returns cleaned text, counts,</text>
+                <text class="node-copy" x="986" y="211">and review notes to the page.</text>
+                <text class="node-tag" x="986" y="235">tab memory · user controlled</text>
+              </g>
+
+              <g class="node browser asset-node" data-node="runtime-cdn" tabindex="0" role="button" aria-label="Pyodide content delivery network sends runtime files only">
+                <rect x="840" y="264" width="262" height="30" rx="8" />
+                <text class="node-tag" x="855" y="283">Pyodide CDN · runtime files only</text>
               </g>
             </g>
 
             <g class="lane" data-lane="agent">
               <rect class="lane-bg agent" x="22" y="338" width="1136" height="318" rx="12" />
               <text class="lane-label" x="44" y="369">02 · AGENT SKILL</text>
-              <text class="lane-subtitle" x="44" y="388">An agent follows SKILL.md and calls the bundled Python function.</text>
-              <path class="connector agent" d="M277 510 H323" />
-              <path class="connector agent" d="M552 510 H598" />
-              <path class="connector agent" d="M827 510 H873" />
+              <text class="lane-subtitle" x="44" y="388">A portable Agent Skills workflow calls the same Python helper for document text.</text>
+              <path class="connector agent" data-edge="agent-request agent-skill" d="M277 510 H323" />
+              <path class="connector agent" data-edge="agent-skill python-core-agent" d="M552 510 H598" />
+              <path class="connector agent" data-edge="python-core-agent agent-result" d="M827 510 H873" />
 
               <g class="node agent" data-node="agent-request" tabindex="0" role="button" aria-label="User requests text cleanup from an agent">
                 <rect x="48" y="439" width="229" height="142" rx="10" />
                 <circle class="node-icon" cx="73" cy="467" r="13" /><text class="icon-letter" x="73" y="467">1</text>
                 <text class="node-kicker" x="95" y="464">REQUEST</text>
-                <text class="node-title" x="66" y="501">Supplied text</text>
-                <text class="node-copy" x="66" y="522">User asks an agent for transparent</text>
-                <text class="node-copy" x="66" y="538">Unicode and whitespace cleanup.</text>
-                <text class="node-tag" x="66" y="562">runtime input · no file writes</text>
+                <text class="node-title" x="66" y="501">Document task</text>
+                <text class="node-copy" x="66" y="522">User asks an agent to draft, revise,</text>
+                <text class="node-copy" x="66" y="538">or clean a text document.</text>
+                <text class="node-tag" x="66" y="562">user-scoped document access</text>
               </g>
 
               <g class="node agent" data-node="agent-skill" tabindex="0" role="button" aria-label="Unicode Clean skill instructions">
@@ -217,18 +344,18 @@
                 <circle class="node-icon" cx="348" cy="467" r="13" /><text class="icon-letter" x="348" y="467">2</text>
                 <text class="node-kicker" x="370" y="464">INSTRUCTIONS</text>
                 <text class="node-title" x="341" y="501">Agent workflow</text>
-                <text class="node-copy" x="341" y="522">Checks scope, chooses safe options,</text>
-                <text class="node-copy" x="341" y="538">inspects changes and review notes.</text>
-                <text class="node-tag" x="341" y="562">SKILL.md · policy · audit</text>
+                <text class="node-copy" x="341" y="522">Keeps the author's wording, calls</text>
+                <text class="node-copy" x="341" y="538">the helper, reviews its audit trail.</text>
+                <text class="node-tag" x="341" y="562">portable SKILL.md instructions</text>
               </g>
 
-              <g class="node agent" data-node="python-core" tabindex="0" role="button" aria-label="Python text sanitizer function">
+              <g class="node agent" data-node="python-core-agent" tabindex="0" role="button" aria-label="Python text sanitizer function in the agent execution environment">
                 <rect x="598" y="439" width="229" height="142" rx="10" />
                 <circle class="node-icon" cx="623" cy="467" r="13" /><text class="icon-letter" x="623" y="467">3</text>
                 <text class="node-kicker" x="645" y="464">PROCESSING</text>
                 <text class="node-title" x="616" y="501">Python helper</text>
-                <text class="node-copy" x="616" y="522">Calls the existing deterministic</text>
-                <text class="node-copy" x="616" y="538">sanitize_text() implementation.</text>
+                <text class="node-copy" x="616" y="522">Runs deterministic Python locally;</text>
+                <text class="node-copy" x="616" y="538">the helper reads or writes no files.</text>
                 <text class="node-tag" x="616" y="562">text_sanitizer.py</text>
               </g>
 
@@ -236,10 +363,10 @@
                 <rect x="873" y="439" width="229" height="142" rx="10" />
                 <circle class="node-icon" cx="898" cy="467" r="13" /><text class="icon-letter" x="898" y="467">4</text>
                 <text class="node-kicker" x="920" y="464">RESPONSE</text>
-                <text class="node-title" x="891" y="501">Text + review notes</text>
-                <text class="node-copy" x="891" y="522">Returns the result and explains</text>
-                <text class="node-copy" x="891" y="538">edits that deserve human review.</text>
-                <text class="node-tag" x="891" y="562">visible changes · user control</text>
+                <text class="node-title" x="891" y="501">Document + review</text>
+                <text class="node-copy" x="891" y="522">Shows changes and review notes;</text>
+                <text class="node-copy" x="891" y="538">saves only as the user requests.</text>
+                <text class="node-tag" x="891" y="562">visible edits · user control</text>
               </g>
             </g>
           </svg>
@@ -249,54 +376,192 @@
           <div class="detail-copy">
             <strong id="detail-title">Select a step to inspect it</strong>
             <p id="detail-description">Choose any node in the map, or focus one of the two workflows above.</p>
+            <div class="detail-meta" id="detail-meta">Interactive map · select a node</div>
           </div>
         </div>
       </section>
 
+      <dialog class="guide" id="guide-dialog" aria-labelledby="guide-title">
+        <div class="guide-header"><strong id="guide-title">Explore the architecture</strong><button class="guide-close" id="guide-close" type="button" aria-label="Close guide">×</button></div>
+        <div class="guide-body">
+          <p>Choose a node to inspect it. Focus a workflow, trace a route through its steps, or search for a component. Drag the canvas to pan and use the zoom controls to adjust the view. The dashed CDN arrow carries Python runtime files only; user text stays in browser memory.</p>
+          <div class="guide-shortcuts">
+            <span><kbd>/</kbd><span>Find a node</span></span><span><kbd>R</kbd><span>Trace a route</span></span>
+            <span><kbd>M</kbd><span>Open the map</span></span><span><kbd>T</kbd><span>Toggle theme</span></span>
+            <span><kbd>S</kbd><span>Cycle style</span></span><span><kbd>F</kbd><span>Presentation</span></span>
+            <span><kbd>+</kbd><span>Zoom in</span></span><span><kbd>0</kbd><span>Reset view</span></span>
+          </div>
+        </div>
+      </dialog>
+
       <div class="footnote">
-        <span><strong>Browser app:</strong> runs locally in the page; no network request sends text.</span>
-        <span><strong>Agent skill:</strong> wraps the Python helper with a review-first workflow.</span>
+        <span><strong>Browser app:</strong> Pyodide runs Python in a Web Worker; text remains in page and worker memory. No request uploads it or saves it.</span>
+        <span><strong>Runtime download:</strong> the CDN supplies Pyodide files only; it never receives the text. The browser may cache those code files.</span>
       </div>
     </main>
 
     <script>
       (function () {
         var params = new URLSearchParams(window.location.search);
-        if (params.get('embed') === '1') document.documentElement.setAttribute('data-embed', 'true');
+        var root = document.documentElement;
+        if (params.get('embed') === '1') root.setAttribute('data-embed', 'true');
 
         var details = {
-          'browser-input': ['01', 'Text and settings', 'The user enters text and selects cleanup options such as normalization, paired em dashes, zero-width-space behavior, and bidirectional-control handling.'],
-          'browser-ui': ['02', 'Browser interface', 'The interface collects the selected options, passes the text to the browser cleanup code, and renders the result and report.'],
-          'browser-pass': ['03', 'Browser cleanup pass', 'The JavaScript pass runs in the page. It keeps common Markdown code and URL spans protected and does not upload text.'],
-          'browser-report': ['04', 'Text and audit trail', 'The user receives cleaned text, counts of edits, and review notes for potentially meaning-sensitive changes.'],
-          'agent-request': ['01', 'Supplied text', 'The agent works only with the text or document content included in the user’s request and the scope the user authorized.'],
-          'agent-skill': ['02', 'Agent workflow', 'SKILL.md tells the agent to read the function’s options, preserve meaning by default, inspect the result, and report changes clearly.'],
-          'python-core': ['03', 'Python helper', 'The skill calls sanitize_text() from text_sanitizer.py. The helper is deterministic, dependency-free, and does not read or write files.'],
-          'agent-result': ['04', 'Text and review notes', 'The agent returns the result with change counts and any review notes, leaving the user in control of whether to save or apply it.']
+          'browser-input': ['01', 'Text and settings', 'The input and cleanup choices live in the page. The app does not send this text to a backend or write it to storage.', 'Page memory · no upload'],
+          'browser-ui': ['02', 'Browser interface', 'app.js sends text and options to python-worker.js with Worker.postMessage. This is an in-browser message, not an HTTP request.', 'app.js · local postMessage'],
+          'browser-worker': ['03', 'Local Python worker', 'The worker receives the text in memory and runs the cleanup. No network request includes user text; the worker clears its Python request globals after each run.', 'python-worker.js · memory only'],
+          'python-core': ['04', 'Pyodide runtime', 'Pyodide runs Python compiled to WebAssembly in the browser worker. It loads the repository’s text_sanitizer.py and calls the same sanitize_text() function as the agent skill.', 'WebAssembly · bundled Python helper'],
+          'runtime-cdn': ['↳', 'Runtime files only', 'On first use the browser downloads Pyodide code and runtime assets from its CDN. Those requests fetch the runtime files only; the text is never attached. The browser may cache those code files.', 'Pyodide CDN · no text payload'],
+          'browser-report': ['05', 'Text and audit trail', 'The cleaned text and report return to the page. They stay in browser memory until the user clears the fields or closes the tab; the app does not save them to a server.', 'Page memory · user controlled'],
+          'agent-request': ['01', 'Document task', 'The user asks an agent to draft or revise a document, or to clean supplied text. The skill applies only within the requested content and file scope.', 'User-authorized task scope'],
+          'agent-skill': ['02', 'Agent workflow', 'SKILL.md preserves the author’s wording, chooses conservative cleanup, runs the helper, and asks the agent to inspect every review note.', 'Portable Agent Skills instructions'],
+          'python-core-agent': ['03', 'Python helper', 'The agent imports sanitize_text() from text_sanitizer.py in its own local execution environment. The function reads and writes no files.', 'Python · standard library only'],
+          'agent-result': ['04', 'Document and review', 'The agent returns the cleaned content and an audit summary. It saves or overwrites a document only when the user asks.', 'Visible edits · user control']
         };
 
         var nodes = Array.prototype.slice.call(document.querySelectorAll('[data-node]'));
         var lanes = Array.prototype.slice.call(document.querySelectorAll('[data-lane]'));
         var filters = Array.prototype.slice.call(document.querySelectorAll('[data-focus]'));
+        var edges = Array.prototype.slice.call(document.querySelectorAll('[data-edge]'));
         var title = document.getElementById('detail-title');
         var description = document.getElementById('detail-description');
-        var index = document.getElementById('detail-index');
+        var detailMeta = document.getElementById('detail-meta');
+        var detailIndex = document.getElementById('detail-index');
+        var detailPanel = document.querySelector('.detail-panel');
+        var detailsToggle = document.getElementById('details-toggle');
+        var searchToggle = document.getElementById('search-toggle');
+        var mapToggle = document.getElementById('map-toggle');
+        var routeToggle = document.getElementById('route-toggle');
+        var routeStatus = document.getElementById('route-status');
+        var routeMessage = document.getElementById('route-message');
+        var finderPanel = document.getElementById('finder-panel');
+        var mapPanel = document.getElementById('map-panel');
+        var finderInput = document.getElementById('finder-input');
+        var finderResults = document.getElementById('finder-results');
+        var mapResults = document.getElementById('map-results');
+        var svg = document.querySelector('.svg-wrap svg');
+        var svgWrap = document.querySelector('.svg-wrap');
+        var zoomValue = document.getElementById('zoom-value');
 
+        function readPreference(key) {
+          try { return window.localStorage.getItem(key); } catch (_) { return null; }
+        }
+        function savePreference(key, value) {
+          try { window.localStorage.setItem(key, value); } catch (_) { /* preferences are optional */ }
+        }
+
+        var savedTheme = readPreference('unicode-clean-diagram-theme');
+        var requestedTheme = params.get('theme');
+        root.setAttribute('data-theme', savedTheme || (requestedTheme === 'light' ? 'light' : 'dark'));
+        var presets = ['classic', 'signal-flow', 'blueprint', 'editorial'];
+        var savedPreset = readPreference('unicode-clean-diagram-preset');
+        root.setAttribute('data-preset', presets.indexOf(savedPreset) >= 0 ? savedPreset : 'classic');
+
+        function laneFor(node) {
+          var lane = node.closest('[data-lane]');
+          return lane ? lane.getAttribute('data-lane') : '';
+        }
+        function nodeById(id) {
+          return nodes.find(function (node) { return node.getAttribute('data-node') === id; });
+        }
         function selectNode(node) {
           var id = node.getAttribute('data-node');
           var content = details[id];
-          nodes.forEach(function (item) { item.classList.toggle('selected', item === node); });
-          index.textContent = content[0];
+          nodes.forEach(function (item) {
+            var selected = item === node;
+            item.classList.toggle('selected', selected);
+            item.classList.toggle('related', !selected && edges.some(function (edge) {
+              var pair = edge.getAttribute('data-edge').split(' ');
+              return (pair[0] === id && pair[1] === item.getAttribute('data-node')) ||
+                (pair[1] === id && pair[0] === item.getAttribute('data-node'));
+            }));
+          });
+          detailIndex.textContent = content[0];
           title.textContent = content[1];
           description.textContent = content[2];
+          detailMeta.textContent = content[3];
+        }
+
+        function focusNode(id) {
+          var node = nodeById(id);
+          if (!node) return;
+          selectNode(node);
+          node.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+          if (node.focus) node.focus({ preventScroll: true });
+        }
+
+        var routeMode = false;
+        var routeStart = null;
+        function clearRoute(keepStatus) {
+          nodes.forEach(function (node) { node.classList.remove('route-step', 'route-start', 'route-end'); });
+          edges.forEach(function (edge) { edge.classList.remove('route-active'); });
+          routeStart = null;
+          if (!keepStatus) routeStatus.hidden = true;
+        }
+        function findPath(start, end) {
+          var queue = [[start]];
+          var visited = new Set([start]);
+          while (queue.length) {
+            var path = queue.shift();
+            var last = path[path.length - 1];
+            if (last === end) return path;
+            edges.forEach(function (edge) {
+              var pair = edge.getAttribute('data-edge').split(' ');
+              if (pair[0] === last && !visited.has(pair[1])) {
+                visited.add(pair[1]);
+                queue.push(path.concat(pair[1]));
+              }
+            });
+          }
+          return null;
+        }
+        function activateRouteNode(node) {
+          var id = node.getAttribute('data-node');
+          if (!routeStart) {
+            clearRoute(true);
+            routeStart = id;
+            node.classList.add('route-start', 'route-step');
+            routeStatus.hidden = false;
+            routeMessage.textContent = 'Start selected. Choose an endpoint in the same connected flow.';
+            return;
+          }
+          var path = findPath(routeStart, id);
+          if (!path) {
+            nodes.forEach(function (item) { item.classList.remove('route-step', 'route-start', 'route-end'); });
+            edges.forEach(function (edge) { edge.classList.remove('route-active'); });
+            routeStart = id;
+            node.classList.add('route-start', 'route-step');
+            routeMessage.textContent = 'No forward route found. New start selected; choose an endpoint.';
+            return;
+          }
+          nodes.forEach(function (item) { item.classList.remove('route-step', 'route-start', 'route-end'); });
+          path.forEach(function (pathId) {
+            var pathNode = nodeById(pathId);
+            if (pathNode) pathNode.classList.add('route-step');
+          });
+          if (nodeById(path[0])) nodeById(path[0]).classList.add('route-start');
+          node.classList.add('route-end');
+          edges.forEach(function (edge) {
+            var pair = edge.getAttribute('data-edge').split(' ');
+            edge.classList.toggle('route-active', path.some(function (_, index) {
+              return path[index] === pair[0] && path[index + 1] === pair[1];
+            }));
+          });
+          routeMessage.textContent = 'Path: ' + path.map(function (pathId) { return details[pathId][1]; }).join(' → ');
+          routeMode = false;
+          routeToggle.setAttribute('aria-pressed', 'false');
+          routeStart = null;
         }
 
         nodes.forEach(function (node) {
-          node.addEventListener('click', function () { selectNode(node); });
+          node.addEventListener('click', function () {
+            selectNode(node);
+            if (routeMode) activateRouteNode(node);
+          });
           node.addEventListener('keydown', function (event) {
             if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              selectNode(node);
+              node.click();
             }
           });
         });
@@ -309,6 +574,220 @@
               lane.classList.toggle('is-muted', focus !== 'all' && lane.getAttribute('data-lane') !== focus);
             });
           });
+        });
+
+        function makeResultButton(node, className) {
+          var id = node.getAttribute('data-node');
+          var button = document.createElement('button');
+          button.type = 'button';
+          button.className = className;
+          button.setAttribute('data-target-node', id);
+          button.append(document.createTextNode(details[id][1]));
+          var small = document.createElement('small');
+          small.textContent = laneFor(node) === 'agent' ? 'agent skill' : 'browser app';
+          button.append(small);
+          return button;
+        }
+        function renderFinder() {
+          var query = finderInput.value.trim().toLowerCase();
+          finderResults.replaceChildren();
+          var matches = nodes.filter(function (node) {
+            var id = node.getAttribute('data-node');
+            return (details[id][1] + ' ' + details[id][2] + ' ' + id).toLowerCase().includes(query);
+          });
+          if (!matches.length) {
+            var empty = document.createElement('p');
+            empty.className = 'node-copy';
+            empty.textContent = 'No matching step.';
+            finderResults.append(empty);
+          }
+          matches.forEach(function (node) { finderResults.append(makeResultButton(node, 'finder-result')); });
+        }
+        nodes.forEach(function (node) { mapResults.append(makeResultButton(node, 'map-node')); });
+        finderInput.addEventListener('input', renderFinder);
+        function activateSearchResult(event) {
+          var button = event.target.closest('[data-target-node]');
+          if (!button) return;
+          focusNode(button.getAttribute('data-target-node'));
+          finderPanel.hidden = true;
+          mapPanel.hidden = true;
+          searchToggle.setAttribute('aria-expanded', 'false');
+          mapToggle.setAttribute('aria-pressed', 'false');
+        }
+        finderResults.addEventListener('click', activateSearchResult);
+        mapResults.addEventListener('click', activateSearchResult);
+        function togglePanel(panel, other, button) {
+          var opening = panel.hidden;
+          panel.hidden = !opening;
+          other.hidden = true;
+          searchToggle.setAttribute('aria-expanded', String(panel === finderPanel && opening));
+          mapToggle.setAttribute('aria-pressed', String(panel === mapPanel && opening));
+          if (button) button.setAttribute('aria-expanded', String(opening));
+          if (opening && panel === finderPanel) {
+            renderFinder();
+            finderInput.focus();
+          }
+        }
+        searchToggle.addEventListener('click', function () { togglePanel(finderPanel, mapPanel, searchToggle); });
+        mapToggle.addEventListener('click', function () { togglePanel(mapPanel, finderPanel, mapToggle); });
+        document.querySelectorAll('[data-close-panel]').forEach(function (button) {
+          button.addEventListener('click', function () {
+            var panel = document.getElementById(button.getAttribute('data-close-panel'));
+            panel.hidden = true;
+            searchToggle.setAttribute('aria-expanded', 'false');
+            mapToggle.setAttribute('aria-pressed', 'false');
+          });
+        });
+
+        document.getElementById('theme-toggle').addEventListener('click', function () {
+          var theme = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+          root.setAttribute('data-theme', theme);
+          savePreference('unicode-clean-diagram-theme', theme);
+          this.setAttribute('aria-pressed', String(theme === 'light'));
+          this.title = 'Toggle color theme (T) · ' + theme;
+        });
+        document.getElementById('theme-toggle').setAttribute('aria-pressed', String(root.getAttribute('data-theme') === 'light'));
+
+        var presetToggle = document.getElementById('preset-toggle');
+        var presetMenu = document.getElementById('preset-menu');
+        var presetLabel = document.getElementById('preset-label');
+        function applyPreset(preset) {
+          root.setAttribute('data-preset', preset);
+          savePreference('unicode-clean-diagram-preset', preset);
+          presetLabel.textContent = preset.replace('-', ' ').replace(/\b\w/g, function (letter) { return letter.toUpperCase(); });
+          presetMenu.querySelectorAll('[data-preset]').forEach(function (item) {
+            item.setAttribute('aria-checked', String(item.getAttribute('data-preset') === preset));
+          });
+        }
+        applyPreset(root.getAttribute('data-preset'));
+        presetToggle.addEventListener('click', function () {
+          var opening = presetMenu.hidden;
+          presetMenu.hidden = !opening;
+          presetToggle.setAttribute('aria-expanded', String(opening));
+        });
+        presetMenu.querySelectorAll('[data-preset]').forEach(function (item) {
+          item.addEventListener('click', function () {
+            applyPreset(item.getAttribute('data-preset'));
+            presetMenu.hidden = true;
+            presetToggle.setAttribute('aria-expanded', 'false');
+          });
+        });
+
+        routeToggle.addEventListener('click', function () {
+          routeMode = !routeMode;
+          routeToggle.setAttribute('aria-pressed', String(routeMode));
+          routeStatus.hidden = !routeMode && !edges.some(function (edge) { return edge.classList.contains('route-active'); });
+          if (routeMode) {
+            clearRoute(true);
+            routeStatus.hidden = false;
+            routeMessage.textContent = 'Choose a start node, then an endpoint. Solid arrows show text flow; the dashed CDN arrow shows runtime assets only.';
+          } else {
+            clearRoute(false);
+          }
+        });
+        document.getElementById('route-clear').addEventListener('click', function () {
+          routeMode = false;
+          routeToggle.setAttribute('aria-pressed', 'false');
+          clearRoute(false);
+        });
+
+        detailsToggle.addEventListener('click', function () {
+          detailPanel.hidden = !detailPanel.hidden;
+          detailsToggle.setAttribute('aria-pressed', String(!detailPanel.hidden));
+        });
+
+        var zoom = 1;
+        var centerX = 590;
+        var centerY = 340;
+        var baseWidth = 1180;
+        var baseHeight = 680;
+        function updateView() {
+          var width = baseWidth / zoom;
+          var height = baseHeight / zoom;
+          svg.setAttribute('viewBox', [centerX - width / 2, centerY - height / 2, width, height].join(' '));
+          zoomValue.textContent = Math.round(zoom * 100) + '%';
+        }
+        function changeZoom(factor) {
+          zoom = Math.max(0.65, Math.min(2.2, zoom * factor));
+          updateView();
+        }
+        document.getElementById('zoom-in').addEventListener('click', function () { changeZoom(1.15); });
+        document.getElementById('zoom-out').addEventListener('click', function () { changeZoom(1 / 1.15); });
+        document.getElementById('zoom-reset').addEventListener('click', function () {
+          zoom = 1; centerX = 590; centerY = 340; updateView();
+        });
+        var drag = null;
+        svgWrap.addEventListener('pointerdown', function (event) {
+          if (event.button !== 0 || event.target.closest('.node')) return;
+          drag = { x: event.clientX, y: event.clientY, cx: centerX, cy: centerY };
+          svgWrap.classList.add('dragging');
+          svgWrap.setPointerCapture(event.pointerId);
+        });
+        svgWrap.addEventListener('pointermove', function (event) {
+          if (!drag) return;
+          var width = baseWidth / zoom;
+          var height = baseHeight / zoom;
+          centerX = drag.cx - (event.clientX - drag.x) * width / svgWrap.clientWidth;
+          centerY = drag.cy - (event.clientY - drag.y) * height / svgWrap.clientHeight;
+          updateView();
+        });
+        function endDrag() { drag = null; svgWrap.classList.remove('dragging'); }
+        svgWrap.addEventListener('pointerup', endDrag);
+        svgWrap.addEventListener('pointercancel', endDrag);
+
+        document.getElementById('presentation-toggle').addEventListener('click', function () {
+          document.body.classList.toggle('presentation');
+          this.setAttribute('aria-pressed', String(document.body.classList.contains('presentation')));
+        });
+        document.getElementById('export-toggle').addEventListener('click', function () {
+          var clone = svg.cloneNode(true);
+          clone.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+          clone.setAttribute('width', '1180');
+          clone.setAttribute('height', '680');
+          clone.setAttribute('data-theme', root.getAttribute('data-theme'));
+          clone.setAttribute('data-preset', root.getAttribute('data-preset'));
+          var style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+          style.textContent = document.querySelector('style').textContent;
+          clone.insertBefore(style, clone.firstChild);
+          var data = new XMLSerializer().serializeToString(clone);
+          var url = URL.createObjectURL(new Blob([data], { type: 'image/svg+xml;charset=utf-8' }));
+          var link = document.createElement('a');
+          link.href = url;
+          link.download = 'unicode-clean-architecture.svg';
+          link.click();
+          URL.revokeObjectURL(url);
+        });
+
+        var guide = document.getElementById('guide-dialog');
+        document.getElementById('guide-toggle').addEventListener('click', function () { guide.showModal(); });
+        document.getElementById('guide-close').addEventListener('click', function () { guide.close(); });
+        guide.addEventListener('click', function (event) {
+          if (event.target === guide) guide.close();
+        });
+
+        document.addEventListener('keydown', function (event) {
+          var typing = event.target.closest('input, textarea, select, [contenteditable="true"]');
+          if (typing && event.key !== 'Escape') return;
+          if (event.key === 'Escape') {
+            finderPanel.hidden = true; mapPanel.hidden = true; presetMenu.hidden = true;
+            searchToggle.setAttribute('aria-expanded', 'false'); mapToggle.setAttribute('aria-pressed', 'false');
+            presetToggle.setAttribute('aria-expanded', 'false');
+            if (guide.open) guide.close();
+            if (document.body.classList.contains('presentation')) document.getElementById('presentation-toggle').click();
+            return;
+          }
+          var key = event.key.toLowerCase();
+          if (key === '/') { event.preventDefault(); if (finderPanel.hidden) togglePanel(finderPanel, mapPanel, searchToggle); else finderInput.focus(); }
+          else if (key === 'r') routeToggle.click();
+          else if (key === 'm') mapToggle.click();
+          else if (key === 't') document.getElementById('theme-toggle').click();
+          else if (key === 's') presetToggle.click();
+          else if (key === 'f') document.getElementById('presentation-toggle').click();
+          else if (key === 'e') document.getElementById('export-toggle').click();
+          else if (key === '?') document.getElementById('guide-toggle').click();
+          else if (key === '+' || key === '=') changeZoom(1.15);
+          else if (key === '-') changeZoom(1 / 1.15);
+          else if (key === '0') { zoom = 1; centerX = 590; centerY = 340; updateView(); }
         });
       })();
     </script>

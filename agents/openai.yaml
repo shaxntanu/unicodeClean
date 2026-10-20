@@ -1,4 +1,4 @@
 interface:
   display_name: "Unicode Clean"
-  short_description: "Clean Unicode with reviewable changes"
-  default_prompt: "Use $unicode-clean to clean this text and report the edits that need review."
+  short_description: "Clean document text with reviewable changes"
+  default_prompt: "Use $unicode-clean to clean this draft before I deliver it."

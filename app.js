@@ -1,8 +1,3 @@
-const REMOVABLE = ["\u00ad", "\ufeff", "\u2060"];
-const BIDI = /[\u061c\u200e\u200f\u202a-\u202e\u2066-\u2069]/gu;
-const CONTROLS = /[\x00-\x08\x0e-\x1f\x7f-\x84\x86-\x9f]/gu;
-const FENCE = /^ {0,3}(`{3,}|~{3,})(.*)$/u;
-const INLINE = /(?<!`)(?<ticks>`+)(?!`)[^\n]*?(?<!`)\k<ticks>(?!`)|https?:\/\/[^\s<>]+|(?<![\p{L}\p{N}_])www\.[^\s<>]+/gu;
 const SAMPLE = "The prototype—tested yesterday—worked.\n\nA single em dash—can change a sentence, so this one is flagged for review.\n\nTechnical notation: x², 10–20 V, −5 V.\nEmoji: 👩‍💻\n\n```python\nvalue = \"  keep  code  \"\n```\n\nA soft hyphen: co\u00adoperate. A link stays as written: https://example.com/a—b";
 
 const input = document.querySelector("#input-text");
@@ -12,255 +7,76 @@ const outputCount = document.querySelector("#output-count");
 const outputState = document.querySelector("#output-state");
 const reportCount = document.querySelector("#report-count");
 const reportContent = document.querySelector("#report-content");
+const cleanButton = document.querySelector("#clean-button");
 const copyButton = document.querySelector("#copy-button");
 const rewriteList = document.querySelector("#rewrite-list");
 
-function countOccurrences(value, token) {
-  if (!token) return 0;
-  return value.split(token).length - 1;
-}
-
-function splitLinesKeepEndings(value) {
-  return (value.match(/.*?(?:\r\n?|\n|[\x0b\x0c\x85\u2028\u2029]|$)/gsu) || []).filter(Boolean);
-}
-
-function protectedBlocks(value) {
-  const blocks = [];
-  let pending = [];
-  let fence = null;
-
-  for (const line of splitLinesKeepEndings(value)) {
-    const match = FENCE.exec(line.replace(/[\r\n]+$/u, ""));
-
-    if (fence !== null) {
-      blocks.push([line, true]);
-      if (match && match[1][0] === fence[0] && match[1].length >= fence[1] && !match[2].trim()) {
-        fence = null;
-      }
-    } else if (match) {
-      if (pending.length) blocks.push([pending.join(""), false]);
-      pending = [];
-      fence = [match[1][0], match[1].length];
-      blocks.push([line, true]);
-    } else if (/^( {4}|\t)/u.test(line)) {
-      if (pending.length) blocks.push([pending.join(""), false]);
-      pending = [];
-      blocks.push([line, true]);
-    } else {
-      pending.push(line);
-    }
-  }
-
-  if (pending.length) blocks.push([pending.join(""), false]);
-  return blocks;
-}
-
-function makeCounter() {
-  const counts = Object.create(null);
-  return {
-    counts,
-    add(key, amount = 1) {
-      if (amount) counts[key] = (counts[key] || 0) + amount;
-    },
-  };
-}
-
-function validateOptions(options) {
-  if (!["NFC", "NFKC", "none"].includes(options.normalization)) {
-    throw new Error("Choose NFC, NFKC, or no Unicode normalization.");
-  }
-  if (!["asides", "keep"].includes(options.emDashes)) {
-    throw new Error("Choose whether paired em dashes are converted or kept.");
-  }
-  if (!["remove", "space", "keep"].includes(options.zeroWidthSpaces)) {
-    throw new Error("Choose whether zero-width spaces are removed, replaced, or kept.");
-  }
-  for (const [before, after] of options.rewrites) {
-    if (typeof before !== "string" || before.length === 0 || typeof after !== "string") {
-      throw new Error("Each replacement needs a non-empty Find value and a Replace with value.");
-    }
-  }
-}
-
-function fixDashes(value, emDashes, counter, review) {
-  const pieces = value.split(/([.!?\n])/u);
-
-  for (let index = 0; index < pieces.length; index += 2) {
-    const part = pieces[index];
-
-    if (emDashes === "asides" && countOccurrences(part, "—") === 2) {
-      const sections = part.split("—");
-      const left = sections[0].trim();
-      const aside = sections[1].trim();
-      const right = sections[2].trim();
-      const words = aside.match(/[\p{L}]+/gu) || [];
-      const leftChars = Array.from(left);
-      const rightChars = Array.from(right);
-
-      if (
-        left && right && words.length >= 2 &&
-        /[\p{L}\p{N}]/u.test(leftChars[leftChars.length - 1]) &&
-        /\p{L}/u.test(rightChars[0])
-      ) {
-        const leading = (part.match(/^\s*/u) || [""])[0];
-        const trailing = (part.match(/\s*$/u) || [""])[0];
-        const replacement = `${left} (${aside}) ${right}`;
-        pieces[index] = `${leading}${replacement}${trailing}`;
-        counter.add("paired_asides_converted");
-        review.push(`Check inferred aside: ${JSON.stringify(part.trim())} -> ${JSON.stringify(replacement)}`);
-        continue;
-      }
-    }
-
-    if (part.includes("—")) {
-      review.push(`Em dash retained; choose an explicit rewrite: ${JSON.stringify(part.trim())}`);
-    }
-  }
-
-  return pieces.join("");
-}
-
-function sanitizeText(text, options) {
-  if (typeof text !== "string") throw new Error("Text input must be a string.");
-  validateOptions(options);
-
-  const counter = makeCounter();
-  const review = [];
-
-  function cleanProse(inputText) {
-    let value = inputText;
-
-    for (const [before, after] of options.rewrites) {
-      const count = countOccurrences(value, before);
-      if (count) {
-        value = value.split(before).join(after);
-        counter.add("explicit_rewrites", count);
-      }
-    }
-
-    const lineEndings = value.match(/\r\n?|[\x85\u2028\x0b]/gu) || [];
-    if (lineEndings.length) {
-      value = value.replace(/\r\n?|[\x85\u2028\x0b]/gu, "\n");
-      counter.add("line_endings_normalized", lineEndings.length);
-    }
-
-    const paragraphSeparators = value.match(/[\u2029\x0c]/gu) || [];
-    if (paragraphSeparators.length) {
-      value = value.replace(/[\u2029\x0c]/gu, "\n\n");
-      counter.add("paragraph_separators_normalized", paragraphSeparators.length);
-    }
-
-    for (const character of REMOVABLE) {
-      const count = countOccurrences(value, character);
-      if (count) {
-        value = value.split(character).join("");
-        counter.add(`removed_U+${character.codePointAt(0).toString(16).toUpperCase().padStart(4, "0")}`, count);
-      }
-    }
-
-    const zeroWidthCount = countOccurrences(value, "\u200b");
-    if (zeroWidthCount && options.zeroWidthSpaces !== "keep") {
-      value = value.split("\u200b").join(options.zeroWidthSpaces === "space" ? " " : "");
-      counter.add("zero_width_spaces_changed", zeroWidthCount);
-      review.push("Check word boundaries where zero-width spaces changed.");
-    }
-
-    const bidiMatches = value.match(BIDI) || [];
-    if (bidiMatches.length) {
-      if (options.removeBidi) {
-        value = value.replace(BIDI, "");
-        counter.add("directional_controls_removed", bidiMatches.length);
-        review.push("Check the reading order of mixed-direction text.");
-      } else {
-        review.push("Directional controls preserved; they can be meaningful.");
-      }
-    }
-
-    const controlMatches = value.match(CONTROLS) || [];
-    if (controlMatches.length) {
-      value = value.replace(CONTROLS, "");
-      counter.add("control_characters_removed", controlMatches.length);
-      review.push("Check text around removed control characters.");
-    }
-
-    if (options.normalization !== "none") {
-      const normalized = value.normalize(options.normalization);
-      if (normalized !== value) {
-        counter.add("unicode_spans_normalized");
-        if (options.normalization === "NFKC") {
-          review.push("NFKC used: check superscripts, units, and mathematical symbols.");
-        }
-      }
-      value = normalized;
-    }
-
-    let normalizedSpaces = "";
-    let spacesChanged = 0;
-    for (const character of value) {
-      if (character !== " " && /\p{Zs}/u.test(character)) {
-        normalizedSpaces += " ";
-        spacesChanged += 1;
-      } else {
-        normalizedSpaces += character;
-      }
-    }
-    value = normalizedSpaces;
-    counter.add("unicode_spaces_normalized", spacesChanged);
-
-    const interiorRuns = value.match(/(?<=\S)(?:[ \t]{2,}|\t)(?=\S)/gu) || [];
-    if (interiorRuns.length) {
-      value = value.replace(/(?<=\S)(?:[ \t]{2,}|\t)(?=\S)/gu, " ");
-      counter.add("interior_whitespace_runs_collapsed", interiorRuns.length);
-    }
-
-    const blankLineGroups = value.match(/\n(?:[ \t]*\n){2,}/gu) || [];
-    if (blankLineGroups.length) {
-      value = value.replace(/\n(?:[ \t]*\n){2,}/gu, "\n\n");
-      counter.add("excess_blank_line_groups_collapsed", blankLineGroups.length);
-    }
-
-    return fixDashes(value, options.emDashes, counter, review);
-  }
-
-  const outputParts = [];
-  for (const [block, protectedBlock] of protectedBlocks(text)) {
-    if (protectedBlock) {
-      outputParts.push(block);
-      continue;
-    }
-
-    let cursor = 0;
-    for (const match of block.matchAll(INLINE)) {
-      outputParts.push(cleanProse(block.slice(cursor, match.index)));
-      outputParts.push(match[0]);
-      cursor = match.index + match[0].length;
-    }
-    outputParts.push(cleanProse(block.slice(cursor)));
-  }
-
-  return {
-    text: outputParts.join(""),
-    changes: counter.counts,
-    review: [...new Set(review)],
-  };
-}
+let pythonWorker = null;
+let activeRun = 0;
 
 function getOptions() {
-  const rewrites = [];
+  const rewrites = {};
   for (const row of rewriteList.querySelectorAll(".rewrite-row")) {
     const before = row.querySelector("[data-rewrite-before]").value;
     const after = row.querySelector("[data-rewrite-after]").value;
     if (!before && !after) continue;
-    rewrites.push([before, after]);
+    if (!before || !after) {
+      throw new Error("Complete both fields for each exact replacement.");
+    }
+    if (Object.hasOwn(rewrites, before)) {
+      throw new Error("Each exact Find value must be unique.");
+    }
+    rewrites[before] = after;
   }
 
   return {
     normalization: document.querySelector("#normalization").value,
-    emDashes: document.querySelector("#em-dashes").value,
-    zeroWidthSpaces: document.querySelector("#zero-width").value,
-    removeBidi: document.querySelector("#remove-bidi").checked,
+    em_dashes: document.querySelector("#em-dashes").value,
+    zero_width_spaces: document.querySelector("#zero-width").value,
+    remove_bidi: document.querySelector("#remove-bidi").checked,
     rewrites,
   };
+}
+
+function getPythonWorker() {
+  if (!pythonWorker) {
+    pythonWorker = new Worker("/python-worker.js", { type: "module" });
+  }
+  return pythonWorker;
+}
+
+function cleanWithLocalPython(text, options, onStatus) {
+  return new Promise((resolve, reject) => {
+    const worker = getPythonWorker();
+    const requestId = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    function removeListeners() {
+      worker.removeEventListener("message", handleMessage);
+      worker.removeEventListener("error", handleError);
+    }
+
+    function handleMessage(event) {
+      if (event.data?.id !== requestId) return;
+      if (event.data.type === "status") {
+        onStatus(event.data.message);
+        return;
+      }
+
+      removeListeners();
+      if (event.data.type === "result") resolve(event.data.result);
+      else reject(new Error(event.data.message || "Python cleanup failed."));
+    }
+
+    function handleError(event) {
+      removeListeners();
+      pythonWorker = null;
+      reject(new Error(event.message || "Could not start the browser Python worker."));
+    }
+
+    worker.addEventListener("message", handleMessage);
+    worker.addEventListener("error", handleError);
+    worker.postMessage({ id: requestId, text, options });
+  });
 }
 
 function characterCount(value) {
@@ -348,10 +164,18 @@ function renderReport(result) {
   }
 }
 
-function runCleanup() {
+async function runCleanup() {
+  const runId = ++activeRun;
+  cleanButton.disabled = true;
   outputState.classList.remove("error-state");
+  outputState.textContent = "Starting Python in your browser…";
+
   try {
-    const result = sanitizeText(input.value, getOptions());
+    const result = await cleanWithLocalPython(input.value, getOptions(), (message) => {
+      if (runId === activeRun) outputState.textContent = message;
+    });
+    if (runId !== activeRun) return;
+
     output.value = result.text;
     outputCount.textContent = characterCount(result.text);
     outputState.textContent = result.review.length
@@ -360,8 +184,11 @@ function runCleanup() {
     renderReport(result);
     copyButton.disabled = result.text.length === 0;
   } catch (error) {
+    if (runId !== activeRun) return;
     outputState.textContent = error.message;
     outputState.classList.add("error-state");
+  } finally {
+    if (runId === activeRun) cleanButton.disabled = false;
   }
 }
 
@@ -390,13 +217,14 @@ function addRewriteRow() {
 }
 
 input.addEventListener("input", updateInputCount);
-document.querySelector("#clean-button").addEventListener("click", runCleanup);
+cleanButton.addEventListener("click", runCleanup);
 document.querySelector("#sample-button").addEventListener("click", () => {
   input.value = SAMPLE;
   updateInputCount();
   input.focus();
 });
 document.querySelector("#clear-button").addEventListener("click", () => {
+  activeRun += 1;
   input.value = "";
   output.value = "";
   inputCount.textContent = "0 characters";
@@ -407,6 +235,7 @@ document.querySelector("#clear-button").addEventListener("click", () => {
   reportContent.classList.remove("has-report");
   reportContent.replaceChildren();
   copyButton.disabled = true;
+  cleanButton.disabled = false;
   input.focus();
 });
 copyButton.addEventListener("click", async () => {
@@ -419,6 +248,18 @@ copyButton.addEventListener("click", async () => {
     output.select();
     outputState.textContent = "Clipboard access was unavailable. Select and copy the result instead.";
   }
+});
+document.querySelectorAll(".install-copy").forEach((button) => {
+  button.addEventListener("click", async () => {
+    const originalLabel = button.textContent;
+    try {
+      await navigator.clipboard.writeText(button.dataset.copy);
+      button.textContent = "Copied";
+    } catch {
+      button.textContent = "Copy unavailable — select command above";
+    }
+    window.setTimeout(() => { button.textContent = originalLabel; }, 1800);
+  });
 });
 document.querySelector("#add-rewrite").addEventListener("click", addRewriteRow);
 document.addEventListener("keydown", (event) => {

@@ -1,66 +1,44 @@
 # Unicode Clean
 
-This repository contains a small, dependency-free Python utility for conservatively cleaning prose. It normalizes selected Unicode and whitespace characters, applies optional exact text replacements, and reports both the changes it made and cases that need human review.
+Unicode Clean is an installable, cross-agent skill for giving agent-authored documents a careful final Unicode and whitespace cleanup. The skill instructions are the main feature; the browser app is an optional way to try the same Python helper.
 
-The repository name reflects its original project context. The included code does not identify AI-generated writing, attempt to evade AI detectors, or guarantee grammar or detector outcomes.
+## Install the skill
 
-## Codex skill
+This repository uses the portable Agent Skills format: a folder with `SKILL.md` frontmatter and instructions, plus optional scripts and host-specific metadata. The same skill can be used in Claude Code and Codex.
 
-This repository also packages the sanitizer as the `unicode-clean` skill. Install the repository contents in a skill directory named `unicode-clean` under `$CODEX_HOME/skills` (or `~/.codex/skills` when `CODEX_HOME` is unset). [`SKILL.md`](SKILL.md) guides an agent to apply the existing function to supplied text, inspect its audit trail, and return the cleaned result with any review notes. The Python module and its direct-run demo remain available.
+- **Claude Code:** place this repository at `~/.claude/skills/unicode-clean` for a personal skill, or at `.claude/skills/unicode-clean` inside a project.
+- **Codex:** place it at `${CODEX_HOME:-~/.codex}/skills/unicode-clean`. `agents/openai.yaml` provides Codex-specific display metadata; the `SKILL.md` workflow remains portable.
+- **Other Agent Skills hosts:** install the repository as a discoverable skill directory containing `SKILL.md` and `text_sanitizer.py`.
 
-The skill is for text hygiene and transparent cleanup. It does not rewrite prose to conceal AI authorship or optimize for AI-detector scores.
+After installation, ask the agent to use `$unicode-clean` while drafting or revising a document, or ask it to clean supplied text. The agent applies the helper to prose, preserves the user's wording and document format, checks its review notes, and reports the changes. Python 3.7+ with only the standard library is needed in the agent's execution environment.
 
-## Web app
+## What the skill does
 
-Open [`index.html`](index.html) locally or import this repository into Vercel. The static HTML, CSS, and JavaScript app has no build step or package dependencies; sanitization runs in the browser, so text is not uploaded. The interactive architecture diagram is available in the app and as a standalone page at [`architecture-overview.html`](architecture-overview.html).
+[`SKILL.md`](SKILL.md) instructs an agent to use [`text_sanitizer.py`](text_sanitizer.py), rather than paraphrasing or reproducing its rules. The helper returns cleaned text, change counts, and review notes. It protects common Markdown code fences, indented code, inline backticks, and simple URL spans. It is a lightweight span recognizer, not a full Markdown or HTML parser.
 
-## What it does
+The helper can normalize line endings, selected Unicode spaces and control characters, apply NFC/NFKC/no normalization, optionally change zero-width spaces, and apply exact replacements the user supplied or approved. It conservatively converts some paired em-dash asides and flags them for review. The function reads and writes no files; the agent handles document access and saving only within the user's request.
 
-`text_sanitizer.py` exposes `sanitize_text(text, ...)`, which returns a `CleanupResult` with three fields:
+Unicode Clean is text hygiene, not a prose humanizer, grammar checker, authorship classifier, or AI-detector bypass. It does not change wording to conceal AI authorship or optimize detector scores.
 
-- `text`: the cleaned string.
-- `changes`: counts of the changes made, keyed by change type.
-- `review`: deduplicated notes for edits or text that should be checked by a person.
+## Optional browser demo
 
-The sanitizer processes prose while preserving common Markdown and URL spans. It leaves fenced code blocks, indented code, inline backtick spans, HTTP(S) URLs, and `www.` URLs unchanged. It is a lightweight span recognizer, not a complete Markdown or HTML parser.
+The dark-mode Vercel app is a small try-it feature. It runs the repository's Python helper in a browser Web Worker using [Pyodide](https://pyodide.org/), which compiles Python to WebAssembly. Vercel serves the static app and the Python source; the browser downloads the pinned Pyodide runtime on first use. The text is passed to the local worker and is not sent to Vercel or the runtime CDN, and this app does not save text to a server. The browser may cache the runtime files.
 
-For unprotected prose, it can:
+For a Vercel import, use the repository root (`.`), the **Other** framework preset, no build command, and the root as the output directory. No environment variables or Python server function are needed. For a local preview, serve the repository over HTTP (for example, `python -m http.server 8765`) and open `http://localhost:8765/`; the Pyodide runtime requires a web server and an internet connection on first use.
 
-- Apply exact caller-supplied replacements from a `rewrites` mapping.
-- Normalize line endings and paragraph separators.
-- Remove soft hyphens, byte-order marks, and word joiners while preserving characters such as emoji joiners and variation selectors.
-- Remove, replace with a regular space, or keep zero-width spaces.
-- Preserve bidirectional text controls by default and report them for review, or remove them when explicitly requested and add a reading-order review note.
-- Remove selected control characters and normalize Unicode space separators.
-- Apply NFC (the default), NFKC, or no Unicode normalization. If NFKC changes compatibility characters such as superscripts, the result includes a review note.
-- Collapse repeated interior whitespace and excessive blank lines without removing leading indentation or Markdown hard-break spaces.
-- Convert a conservative, likely paired em-dash aside into parentheses. Other em dashes are retained and flagged for review.
+The interactive architecture diagram is embedded in the demo and is also available at [`architecture-overview.html`](architecture-overview.html).
 
-The function validates its options and raises `TypeError` for non-string input or `ValueError` for unsupported options and malformed rewrite mappings. It reads and writes no files. The example at the bottom of the script prints a demonstration and its change/review summaries when run directly.
-
-## Requirements
-
-- Python 3.7 or newer
-- Python standard library only
-
-## Use it as a module
+## Use the Python helper directly
 
 ```python
 from text_sanitizer import sanitize_text
 
 result = sanitize_text(
-    "The prototype—tested yesterday—worked.\n"
-    "The test failed—the battery was empty.\n"
-    "Technical notation: x², 10–20 V, −5 V.\n"
-    "Emoji: 👩‍💻",
+    "The prototype—tested yesterday—worked.\nTechnical notation: x², 10–20 V.",
     normalization="NFC",
     em_dashes="asides",
     zero_width_spaces="remove",
     remove_bidi=False,
-    rewrites={
-        "The test failed—the battery was empty.":
-            "The test failed because the battery was empty."
-    },
 )
 
 print(result.text)
@@ -69,23 +47,4 @@ for note in result.review:
     print("Review:", note)
 ```
 
-All keyword options are optional. Their defaults are shown above. For the precise behavior and limits of each option, see the `sanitize_text` docstring in [`text_sanitizer.py`](text_sanitizer.py).
-
-To run the built-in demonstration:
-
-```console
-python text_sanitizer.py
-```
-
-## Processing flow
-
-The utility validates its inputs, separates protected Markdown/code/URL spans from prose, and applies the configured cleanup steps only to prose. It returns the resulting text alongside a compact audit trail; review notes identify potentially meaning-sensitive transformations.
-
-[Open the interactive Archify diagram](.archify/architecture-text-sanitizer-20261012-214412/text-sanitizer.html) · [View its editable diagram source](.archify/architecture-text-sanitizer-20261012-214412/candidate.json)
-
-## Limitations
-
-- It is not a grammar checker, style rewriter, plagiarism checker, authorship classifier, or AI-detector bypass tool.
-- Markdown protection covers common code fences, indented code, inline backticks, and simple URL patterns; it does not parse every Markdown extension or HTML construct.
-- Cleanup can change meaning or word boundaries. Review the returned notes and inspect the text before using it, especially after NFKC normalization, zero-width-space changes, or removal of directional controls.
-- A returned change count records what this function changed; it does not certify that the result is correct or appropriate.
+Run the built-in example with `python text_sanitizer.py`. Review the returned notes, especially after NFKC normalization, zero-width-space changes, or removal of directional controls.
