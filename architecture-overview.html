@@ -71,10 +71,11 @@
       .preset-option, .finder-result, .map-node { display: flex; align-items: center; gap: 9px; width: 100%; padding: 9px; border: 0; border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; text-align: left; font: inherit; font-size: 10px; }
       .preset-option:hover, .finder-result:hover, .map-node:hover { background: var(--panel-raised); color: var(--ink); }
       .preset-swatch { width: 9px; height: 9px; border-radius: 3px; background: var(--violet); box-shadow: 0 0 0 3px var(--violet-dim); }
-      .zoom-group { display: flex; align-items: center; gap: 4px; margin-left: auto; }
-      .zoom-button { display: grid; place-items: center; width: 29px; height: 29px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; font-size: 13px; }
+      .zoom-group { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; margin-left: auto; }
+      .zoom-button { display: grid; flex: 0 0 29px; place-items: center; width: 29px; height: 29px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; font-size: 13px; }
+      .zoom-button#zoom-reset { flex: 0 0 46px; width: 46px; padding: 0 7px; font-size: 10px; white-space: nowrap; }
       .zoom-button:hover { background: var(--panel-raised); color: var(--ink); }
-      .zoom-value { min-width: 42px; color: var(--muted); text-align: center; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
+      .zoom-value { flex: 0 0 42px; min-width: 42px; color: var(--muted); text-align: center; font: 9px ui-monospace, SFMono-Regular, Consolas, monospace; }
       .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 0 3px rgba(154, 196, 154, .12); }
       .filters { display: flex; flex-wrap: wrap; gap: 6px; }
       .filter { padding: 6px 9px; border: 1px solid var(--line); border-radius: 6px; background: transparent; color: var(--soft); cursor: pointer; font-size: 9px; font-weight: 650; }
