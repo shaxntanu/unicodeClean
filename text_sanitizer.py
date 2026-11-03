@@ -320,8 +320,8 @@ def sanitize_text(
 if __name__ == "__main__":
     # Replace this example with your text.
     original = (
-        "The prototype—tested yesterday—worked.\n"
-        "The test failed—the battery was empty.\n"
+        "The prototype (tested yesterday) worked.\n"
+        "The test failed: the battery was empty.\n"
         "Technical notation: x², 10–20 V, −5 V.\n"
         "Emoji: 👩‍💻"
     )
@@ -330,7 +330,7 @@ if __name__ == "__main__":
         original,
         rewrites={
             # Single em dashes can require actual sentence rewrites.
-            "The test failed—the battery was empty.":
+            "The test failed: the battery was empty.":
                 "The test failed because the battery was empty."
         },
     )

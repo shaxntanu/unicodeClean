@@ -34,7 +34,7 @@ The interactive architecture diagram is embedded in the demo and is also availab
 from text_sanitizer import sanitize_text
 
 result = sanitize_text(
-    "The prototype—tested yesterday—worked.\nTechnical notation: x², 10–20 V.",
+    "The prototype (tested yesterday) worked.\nTechnical notation: x², 10–20 V.",
     normalization="NFC",
     em_dashes="asides",
     zero_width_spaces="remove",

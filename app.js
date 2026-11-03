@@ -1,4 +1,4 @@
-const SAMPLE = "The prototype—tested yesterday—worked.\n\nA single em dash—can change a sentence, so this one is flagged for review.\n\nTechnical notation: x², 10–20 V, −5 V.\nEmoji: 👩‍💻\n\n```python\nvalue = \"  keep  code  \"\n```\n\nA soft hyphen: co\u00adoperate. A link stays as written: https://example.com/a—b";
+const SAMPLE = "The prototype (tested yesterday) worked.\n\nReview edits that may change meaning carefully.\n\nTechnical notation: x², 10–20 V, −5 V.\nEmoji: 👩‍💻\n\n```python\nvalue = \"  keep  code  \"\n```\n\nA soft hyphen: co\u00adoperate. A link stays as written: https://example.com/a-b";
 
 const input = document.querySelector("#input-text");
 const output = document.querySelector("#output-text");
@@ -231,7 +231,7 @@ document.querySelector("#clear-button").addEventListener("click", () => {
   outputCount.textContent = "Waiting for text";
   outputState.textContent = "Ready when you are.";
   outputState.classList.remove("error-state");
-  reportCount.textContent = "—";
+  reportCount.textContent = "0";
   reportContent.classList.remove("has-report");
   reportContent.replaceChildren();
   copyButton.disabled = true;
@@ -256,7 +256,7 @@ document.querySelectorAll(".install-copy").forEach((button) => {
       await navigator.clipboard.writeText(button.dataset.copy);
       button.textContent = "Copied";
     } catch {
-      button.textContent = "Copy unavailable — select command above";
+      button.textContent = "Copy unavailable: select command above";
     }
     window.setTimeout(() => { button.textContent = originalLabel; }, 1800);
   });
